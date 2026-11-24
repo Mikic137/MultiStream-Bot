@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="/static/flujo.js"></script>
+  <title>Control de Voz & Voces IA - MultiStream</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0d111a;
+      color: #e2e8f0;
+      padding: 22px;
+      margin: 0;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .header-title h1 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 0.5px;
+    }
+    .mut { color: #8b9bb4; font-size: 13px; line-height: 1.4; }
+
+    /* OBS CARD (ESTILO TIKFINITY) */
+    .obs-card {
+      background: #141b27;
+      border: 1px solid #232d3f;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+    .obs-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .obs-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; }
+    code {
+      background: #0b0f17;
+      color: #00e5ff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #1f2a3a;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+    }
+
+    /* STATUS PILL */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .status-badge.on {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+    .status-badge.off {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+
+    /* TABS NAV */
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #232d3f;
+      padding-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: #141b27;
+      color: #94a3b8;
+      border: 1px solid #243042;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      transition: all .15s;
+    }
+    .tab-btn:hover { background: #1c2536; color: #fff; }
+    .tab-btn.on {
+      background: #233047;
+      color: #fff;
+      border-color: #00e5ff;
+      box-shadow: 0 0 14px rgba(0, 229, 255, 0.2);
+    }
+
+    /* TAB CONTENT */
+    .tab-pane { display: none; }
+    .tab-pane.on { display: flex; flex-direction: column; gap: 18px; }
+
+    /* CARD ESTILO TIKFINITY */
+    .card {
+      background: #141b27;
+      border: 1px solid #222c3d;
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+    .card-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      letter-spacing: 0.3px;
+      border-bottom: 1px solid #1e283a;
+      padding-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .card-title-accent { color: #00e5ff; }
+
+    /* FORMS & GRIDS */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px 20px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .form-group input:not([type=checkbox]):not([type=range]):not([type=color]),
+    .form-group select,
+    .form-group textarea {
+      background: #0b0f17;
+      color: #fff;
+      border: 1px solid #233044;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font: inherit;
+      font-size: 13px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: #00e5ff;
+      outline: none;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    }
+
+    /* SLIDERS */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .slider-row input[type=range] {
+      flex: 1;
+      accent-color: #00e5ff;
+      cursor: pointer;
+    }
+    .slider-val {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 12px;
+      background: #0b0f17;
+      border: 1px solid #233044;
+      padding: 4px 10px;
+      border-radius: 6px;
+      min-width: 44px;
+      text-align: center;
+      color: #00e5ff;
+    }
+
+    /* SWITCH TOGGLE (TIKFINITY) */
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0e141f;
+      border: 1px solid #1c2637;
+      border-radius: 10px;
+      padding: 12px 16px;
+      gap: 12px;
+    }
+    .switch-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .switch-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+    .switch-desc {
+      font-size: 12px;
+      color: #8b9bb4;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #243042;
+      transition: .2s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #fff;
+      transition: .2s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #10b981; }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* BOTONES */
+    .btn {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .15s;
+      text-decoration: none;
+    }
+    .btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn.secondary {
+      background: #1a2332;
+      color: #cbd5e1;
+      border: 1px solid #2c394c;
+    }
+    .btn.secondary:hover { background: #243247; color: #fff; }
+    .btn.cyan {
+      background: #00e5ff;
+      color: #0b111a;
+      font-weight: 700;
+    }
+    .btn.cyan:hover { background: #33ecff; box-shadow: 0 0 12px rgba(0, 229, 255, 0.4); }
+    .btn.success {
+      background: #10b981;
+      color: #fff;
+      font-weight: 700;
+    }
+    .btn.success:hover { background: #059669; }
+    .btn.danger {
+      background: #3b1418;
+      color: #ff6b6b;
+      border: 1px solid #7f1d1d;
+    }
+    .btn.danger:hover { background: #5a1d22; color: #fff; }
+    .btn.warn {
+      background: #d97706;
+      color: #fff;
+    }
+    .btn.warn:hover { background: #b45309; }
+
+    /* CHIPS DE USUARIOS AUTORIZADOS */
+    .chips-box {
+      background: #0b0f17;
+      border: 1px solid #233044;
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 52px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .user-chip {
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      color: #00e5ff;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all .15s;
+    }
+    .user-chip:hover {
+      background: rgba(0, 229, 255, 0.22);
+      border-color: #00e5ff;
+    }
+    .btn-chip-del {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+    }
+    .btn-chip-del:hover {
+      color: #ff6b6b;
+    }
+
+    /* GRID DE CANDIDATOS DETECTADOS */
+    .candidate-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .candidate-card {
+      background: #0e141f;
+      border: 1px solid #1f2a3a;
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      transition: all .15s;
+    }
+    .candidate-card:hover {
+      background: #141d2c;
+      border-color: #2e3f57;
+    }
+    .candidate-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+    .candidate-icon {
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .candidate-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .candidate-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .candidate-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge-origin {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    /* VOCES IA LISTA (TIKFINITY CARDS) */
+    .voices-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .voice-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0e141f;
+      border: 1px solid #1f2a3a;
+      border-radius: 10px;
+      padding: 12px 16px;
+      gap: 14px;
+      transition: all .2s;
+    }
+    .voice-item:hover {
+      background: #141d2c;
+      border-color: #2e3f57;
+    }
+    .voice-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      background: #141b27;
+      flex-shrink: 0;
+      box-shadow: 0 0 14px rgba(0,0,0,0.4);
+    }
+    .voice-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .voice-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .voice-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .cmd-badge {
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      color: #00e5ff;
+      font-family: Consolas, monospace;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+    .id-pill {
+      font-size: 11px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .id-pill code {
+      padding: 2px 6px;
+      font-size: 11px;
+      color: #ffd45e;
+    }
+    .voice-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* MODAL / FORMULARIO AÑADIR VOZ */
+    #form_nueva_voz {
+      background: #0f1624;
+      border: 1px dashed #00e5ff;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-top: 14px;
+      box-shadow: 0 6px 20px rgba(0, 229, 255, 0.1);
+    }
+    .color-swatches {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .color-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform .15s, border-color .15s;
+    }
+    .color-dot:hover { transform: scale(1.15); }
+    .color-dot.active { border-color: #fff; transform: scale(1.1); }
+
+    /* PREVIEW OBS BUBBLE */
+    .bubble-preview-card {
+      background: #060911;
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid #1a2230;
+      margin-top: 12px;
+    }
+    .preview-bubble {
+      background: rgba(10, 14, 26, 0.92);
+      border: 2px solid #00e5ff;
+      border-radius: 14px;
+      padding: 10px 14px;
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.35);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .preview-tag {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* CONSOLA STREAMER */
+    .console-card {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(20, 27, 45, 0.9) 100%);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      border-left: 5px solid #00e5ff;
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+    .console-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    /* TABLA TIKFINITY PARA HISTORIAL */
+    .table-container {
+      background: #0e141f;
+      border: 1px solid #1f2a3a;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    thead { background: #080c14; border-bottom: 1px solid #1f2a3a; }
+    th { padding: 10px 14px; font-size: 11px; font-weight: 700; color: #8b9bb4; text-transform: uppercase; }
+    td { padding: 10px 14px; border-bottom: 1px solid #17202f; vertical-align: middle; }
+    tbody tr:hover { background: #131b28; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    /* TOAST FEEDBACK */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #141b27;
+      border: 1px solid #00e5ff;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0, 229, 255, 0.25);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all .25s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 9999;
+    }
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- CABECERA PRINCIPAL -->
+  <header class="header">
+    <div class="header-title">
+      <h1><span>🎙️</span> Panel de Control de Voz & TTS MultiStream</h1>
+      <div class="mut">Configura las voces IA de personajes (Bulma, Goku, etc.), la lectura en voz alta de comentarios y los filtros de chat.</div>
+    </div>
+  </header>
+
+  <!-- BARRA DE OBS (TIKFINITY SOURCE) -->
+  <div class="obs-card">
+    <div class="obs-info">
+      <span class="obs-label">OBS Browser Source:</span>
+      <code id="urlobs">Cargando enlace...</code>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button type="button" class="btn secondary" id="btn_copiar_obs">📋 Copiar enlace</button>
+      <button type="button" class="btn secondary" id="btn_preview_obs">👁️ Vista previa</button>
+      <span class="status-badge off" id="obs_status_badge">⚪ Comprobando OBS...</span>
+    </div>
+  </div>
+
+  <!-- NAVEGACIÓN POR PESTAÑAS -->
+  <div class="tabs-nav">
+    <button class="tab-btn on" data-tab="tab-ia">🤖 Voces IA de Personajes</button>
+    <button class="tab-btn" data-tab="tab-tts">🗣️ Lectura en Voz Alta (TTS Normal)</button>
+    <button class="tab-btn" data-tab="tab-filtros">🛡️ Filtros & Palabras Bloqueadas</button>
+    <button class="tab-btn" data-tab="tab-historial">📜 Historial & Silenciados</button>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- PESTAÑA 1: VOCES IA DE PERSONAJES          -->
+  <!-- ========================================== -->
+  <div class="tab-pane on" id="tab-ia">
+    
+    <!-- SWITCH PRINCIPAL Y MOTOR -->
+    <div class="card" style="border-left: 5px solid #00e5ff;">
+      <div class="card-title">
+        <span class="card-title-accent">⚡ Configuración del Motor IA de Personajes</span>
+        <span style="font-size:12px;color:#8b9bb4;">Comandos: !b, !g, !voces</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="switch-row full">
+          <div class="switch-info">
+            <span class="switch-title">Activar Voces IA en el Directo</span>
+            <span class="switch-desc">Permite a los usuarios autorizados hacer hablar a Bulma, Goku y otros personajes con comandos de chat</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-k="bulma_activa">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Motor de Voz IA</label>
+          <select data-k="bulma_motor">
+            <option value="fish_audio">🤖 Fish.audio IA (Voces Clonas Oficiales con API)</option>
+            <option value="edge_tts">Edge TTS (Sintética con Pitch & Efecto)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Fish.Audio API Key <a href="https://fish.audio/es/go-api/" target="_blank" style="color:#00e5ff;text-transform:none;font-weight:600;">🔑 Obtener clave gratis (100k tokens)</a></label>
+          <input type="text" data-k="fish_audio_key" placeholder="Pega aquí tu API Key de fish.audio">
+        </div>
+      </div>
+    </div>
+
+    <!-- PROTECCIÓN DE TOKENS & GESTIÓN DE DONADORES Y VIPS -->
+    <div class="card">
+      <div class="card-title">
+        <span>🛡️ Permisos de Chat y Protección de Tokens</span>
+        <span style="font-size:12px;color:#34d399;">Ahorro de consumo mensual activo</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Quién puede usar las Voces IA</label>
+          <select data-k="bulma_modo_acceso">
+            <option value="vips_y_autorizados">⭐ VIPs y Donadores Autorizados (Recomendado)</option>
+            <option value="autorizados">⭐ Solo Donadores Autorizados y Streamer</option>
+            <option value="vips">⭐ Todos los VIPs</option>
+            <option value="todos">🌐 Todos los espectadores</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Espera entre usos / Cooldown por usuario</label>
+          <div class="slider-row">
+            <input type="number" data-k="bulma_cooldown" min="5" max="600" value="60" style="width:100px;">
+            <span class="mut">segundos (evita spam de tokens)</span>
+          </div>
+        </div>
+
+        <!-- LISTA INTERACTIVA DE AUTORIZADOS (CHIPS) -->
+        <div class="form-group full">
+          <label>
+            <span>Usuarios y Donadores Autorizados para Voces IA</span>
+            <span class="mut" style="font-weight:normal;text-transform:none;">El streamer siempre tiene acceso libre</span>
+          </label>
+          
+          <div class="chips-box" id="chips_container">
+            <!-- Renderizado dinámico de chips -->
+          </div>
+
+          <!-- BARRA PARA AGREGAR USUARIOS UNO A UNO -->
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+            <input type="text" id="inp_nuevo_autorizado" placeholder="Escribe un @usuario o nombre extra..." style="flex:1;min-width:240px;background:#0b0f17;color:#fff;border:1px solid #233044;border-radius:8px;padding:8px 12px;font-size:13px;">
+            <button type="button" class="btn cyan" id="btn_agregar_autorizado">+ Agregar</button>
+            <button type="button" class="btn success" id="btn_autorizar_todos_vips">⚡ Añadir a Todos los VIPs y Donadores (1 Clic)</button>
+            <button type="button" class="btn danger" id="btn_vaciar_autorizados">🗑️ Limpiar</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Volumen de Voces IA: <span id="lbl_vol_ia" class="slider-val">100%</span></label>
+          <div class="slider-row">
+            <input type="range" min="0" max="100" data-k="bulma_volumen" id="rng_vol_ia">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Máx. caracteres por mensaje IA</label>
+          <input type="number" data-k="bulma_max_chars" min="20" max="300" value="160">
+        </div>
+
+        <div class="switch-row full">
+          <div class="switch-info">
+            <span class="switch-title">Decir el nombre del usuario antes del mensaje</span>
+            <span class="switch-desc">Ejemplo: «Dylan dice: Hola a todos»</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-k="bulma_leer_nombre">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- DONADORES Y VIPS DETECTADOS (AÑADIR CON 1 CLIC) -->
+    <div class="card">
+      <div class="card-title">
+        <span>🌟 Donadores del Stream y VIPs Detectados (Añadir con 1 Clic)</span>
+        <span class="mut" style="font-weight:normal;">Detecta donadores de Kick, TikTok, Streamloots y VIPs</span>
+      </div>
+      <p class="mut" style="margin-bottom:12px;">Haz clic en <b>+ Añadir a Voces IA</b> para autorizar a cualquiera de tus donadores o VIPs al instante sin tener que escribir nombres:</p>
+
+      <div class="candidate-grid" id="candidatos_grid">
+        <!-- Renderizado dinámico de donadores y VIPs -->
+      </div>
+    </div>
+
+    <!-- LISTA DE PERSONAJES CONFIGURADOS -->
+    <div class="card">
+      <div class="card-title">
+        <span>🎭 Personajes y Voces IA Configuradas</span>
+        <button type="button" class="btn cyan" id="btn_toggle_nueva_voz">+ Añadir Otra Voz IA</button>
+      </div>
+
+      <div class="voices-list" id="lista_voces_ia">
+        <!-- Renderizado dinámico -->
+      </div>
+
+      <!-- FORMULARIO DESPLEGABLE PARA AÑADIR OTRA VOZ -->
+      <div id="form_nueva_voz" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="font-size:14px;font-weight:700;color:#00e5ff;">✨ Registrar Nuevo Personaje IA</span>
+          <button type="button" class="btn secondary" id="btn_cancelar_nueva_voz" style="padding:4px 10px;font-size:11px;">✕ Cerrar</button>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre del Personaje</label>
+            <input type="text" id="nv_nombre" placeholder="Ej: Vegeta, Piccolo, Krilin">
+          </div>
+
+          <div class="form-group">
+            <label>Comando de Chat (sin !)</label>
+            <input type="text" id="nv_comando" placeholder="Ej: v (quedará como !v)">
+          </div>
+
+          <div class="form-group full">
+            <label>Enlace o Model ID de Fish Audio</label>
+            <input type="text" id="nv_model_id" placeholder="Pega el link https://fish.audio/es/m/... o el ID de 32 letras">
+          </div>
+
+          <div class="form-group">
+            <label>Emoji del Personaje</label>
+            <input type="text" id="nv_emoji" placeholder="👑" value="🤖" style="width:70px;">
+          </div>
+
+          <div class="form-group">
+            <label>Color de Aura en OBS</label>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <input type="color" id="nv_color" value="#00e5ff" style="width:40px;height:34px;padding:0;background:none;border:none;cursor:pointer;">
+              <div class="color-swatches">
+                <span class="color-dot" style="background:#00e5ff;" data-c="#00e5ff" title="Cian"></span>
+                <span class="color-dot" style="background:#ff7700;" data-c="#ff7700" title="Naranja"></span>
+                <span class="color-dot" style="background:#ef4444;" data-c="#ef4444" title="Rojo"></span>
+                <span class="color-dot" style="background:#a855f7;" data-c="#a855f7" title="Púrpura"></span>
+                <span class="color-dot" style="background:#ffd700;" data-c="#ffd700" title="Dorado"></span>
+                <span class="color-dot" style="background:#22c55e;" data-c="#22c55e" title="Verde"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista previa en tiempo real -->
+        <div class="bubble-preview-card">
+          <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:8px;">Vista Previa en OBS:</span>
+          <div class="preview-bubble" id="prev_bubble">
+            <span id="prev_emoji" style="font-size:24px;">🤖</span>
+            <div>
+              <span class="preview-tag" id="prev_tag" style="background:#00e5ff22;color:#00e5ff;border:1px solid #00e5ff66;">PERSONAJE (VOZ IA)</span>
+              <p style="font-size:13px;color:#fff;margin-top:4px;" id="prev_text">«¡Este es un mensaje de prueba con mi voz en el directo!»</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px;display:flex;gap:10px;">
+          <button type="button" class="btn cyan" id="btn_guardar_nueva_voz">💾 Guardar Personaje</button>
+          <button type="button" class="btn secondary" id="btn_cancelar_nueva_voz_2">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONSOLA DEL STREAMER -->
+    <div class="console-card">
+      <div class="card-title" style="border:none;padding:0;margin-bottom:6px;">
+        <span style="color:#00e5ff;">👑 Consola del Streamer (Hablar en Vivo sin Cooldown)</span>
+      </div>
+      <p class="mut">Escribe un mensaje para que hable cualquier personaje de inmediato en OBS saltándose cualquier tiempo de espera:</p>
+      
+      <div class="console-row">
+        <select id="streamer_voz_sel" style="background:#0b0f17;color:#fff;border:1px solid #233044;border-radius:8px;padding:9px 12px;font-weight:700;min-width:180px;"></select>
+        <input type="text" id="streamer_bulma_txt" placeholder="Escribe lo que quieres que diga en vivo..." style="flex:1;min-width:260px;background:#0b0f17;color:#fff;border:1px solid #233044;border-radius:8px;padding:9px 12px;">
+        <button type="button" class="btn cyan" id="btn_streamer_bulma">🎙️ Hablar ahora</button>
+      </div>
+    </div>
+
+    <!-- INFORMACIÓN PARA EL CHAT -->
+    <div style="background:#0e141f;border:1px solid #1c2637;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:18px;">💡</span>
+      <span class="mut"><b>Comando público para espectadores:</b> Escribe <code>!voces</code> o <code>!infovoces</code> en el chat para ver todas las voces activas y sus comandos.</span>
+    </div>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- PESTAÑA 2: LECTURA EN VOZ ALTA (TTS NORMAL)-->
+  <!-- ========================================== -->
+  <div class="tab-pane" id="tab-tts">
+    
+    <div class="card">
+      <div class="card-title">
+        <span>🗣️ Configuración del TTS Estándar</span>
+        <span class="mut" id="cola_status">En cola: 0</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="switch-row full">
+          <div class="switch-info">
+            <span class="switch-title">Lectura en Voz Alta Activada</span>
+            <span class="switch-desc">Lee los comentarios entrantes de Kick y TikTok</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-k="activa">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Salida de Audio</label>
+          <select data-k="motor">
+            <option value="obs">Fuente de OBS (Recomendado, URL aparte)</option>
+            <option value="ventana">Ventana de sonido (Captura de aplicación)</option>
+            <option value="sistema">Audio general de Windows</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Qué comentarios leer</label>
+          <select data-k="modo">
+            <option value="todos">Todos los comentarios</option>
+            <option value="vips">⭐ Solo VIPs y Moderadores</option>
+            <option value="comando">Solo los que empiecen con !decir</option>
+          </select>
+        </div>
+
+        <div class="form-group full">
+          <label>Voz del Sistema</label>
+          <select id="voces">
+            <option value="">Predeterminada de Windows</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Velocidad: <span id="lbl_vel" class="slider-val">0</span></label>
+          <div class="slider-row">
+            <input type="range" min="-10" max="10" data-k="velocidad" id="rng_vel">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Volumen: <span id="lbl_vol" class="slider-val">100%</span></label>
+          <div class="slider-row">
+            <input type="range" min="0" max="100" data-k="volumen" id="rng_vol">
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid #1e283a;padding-top:14px;">
+        <button type="button" class="btn" id="probar">▶ Probar voz</button>
+        <button type="button" class="btn warn" id="saltar">⏭ Saltar mensaje actual</button>
+        <button type="button" class="btn danger" id="vaciar">🗑️ Vaciar cola de espera</button>
+        <button type="button" class="btn secondary" id="abrirv" style="display:none;">Abrir ventana de audio</button>
+      </div>
+      <p class="mut" id="hint" style="margin-top:10px;"></p>
+    </div>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- PESTAÑA 3: FILTROS & SEGURIDAD             -->
+  <!-- ========================================== -->
+  <div class="tab-pane" id="tab-filtros">
+    
+    <div class="card">
+      <div class="card-title">
+        <span>🛡️ Filtros de Seguridad y Moderación</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="switch-row full">
+          <div class="switch-info">
+            <span class="switch-title">Decir el nombre antes del comentario</span>
+            <span class="switch-desc">Ejemplo: «Carlos dice: ¡Gran jugada!»</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-k="leer_nombre">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-row full">
+          <div class="switch-info">
+            <span class="switch-title">Ignorar mensajes con enlaces web</span>
+            <span class="switch-desc">Evita que se lean links de spam en directo</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-k="sin_links">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Máximo de caracteres por comentario</label>
+          <input type="number" data-k="max_chars" min="20" max="300" value="120">
+        </div>
+
+        <div class="form-group">
+          <label>Espera por persona / Cooldown normal (s)</label>
+          <input type="number" data-k="espera" min="0" max="120" value="10">
+        </div>
+
+        <div class="form-group">
+          <label>Máximo de mensajes acumulados en cola</label>
+          <input type="number" data-k="max_cola" min="1" max="20" value="5">
+        </div>
+
+        <div class="form-group full">
+          <label>Palabras bloqueadas (separadas por coma)</label>
+          <input type="text" data-k="bloqueadas" placeholder="insulto1, insulto2, spam">
+        </div>
+      </div>
+    </div>
+
+    <!-- COMANDOS DE CHAT -->
+    <div class="card">
+      <div class="card-title">
+        <span>🎮 Comandos Especiales del Chat</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="switch-row full">
+          <div class="switch-info">
+            <span class="switch-title">Comando de Ruleta / Retos: !reto juega ...</span>
+            <span class="switch-desc">Permite a los usuarios enviar retos para la ruleta</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-k="cmd_reto">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-row full">
+          <div class="switch-info">
+            <span class="switch-title">Comando de Música: !play / !cancion</span>
+            <span class="switch-desc">Permite a los usuarios pedir música para el bot</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-k="cmd_play">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-row full">
+          <div class="switch-info">
+            <span class="switch-title">Exigir la palabra «juega» en !reto</span>
+            <span class="switch-desc">Filtra retos mal formateados automáticamente</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-k="reto_juega">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- PESTAÑA 4: HISTORIAL & SILENCIADOS         -->
+  <!-- ========================================== -->
+  <div class="tab-pane" id="tab-historial">
+    
+    <div class="card">
+      <div class="card-title">
+        <span>📜 Últimos Comentarios Leídos</span>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Mensaje</th>
+              <th style="width:100px;text-align:right;">Acción</th>
+            </tr>
+          </thead>
+          <tbody id="rec_body">
+            <!-- Renderizado dinámico -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>🔇 Usuarios Silenciados</span>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th style="width:140px;text-align:right;">Acción</th>
+            </tr>
+          </thead>
+          <tbody id="sil_body">
+            <!-- Renderizado dinámico -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- TOAST NOTIFICACIÓN -->
+<div id="toast">Configuración actualizada</div>
+
+<script>
+  const $ = s => document.querySelector(s);
+  const api = (u, b) => fetch(u, {
+    method: b ? "POST" : "GET",
+    headers: { "Content-Type": "application/json" },
+    body: b && JSON.stringify(b)
+  }).then(r => r.json());
+
+  const val = e => e.type === "checkbox" ? e.checked : (e.type === "range" || e.type === "number") ? +e.value : e.value;
+  let primera = true, cfg = {};
+
+  // TOAST
+  function showToast(msg) {
+    const t = $("#toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove("show"), 2500);
+  }
+
+  // TABS
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("on"));
+      document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("on"));
+      btn.classList.add("on");
+      $("#" + btn.dataset.tab).classList.add("on");
+    };
+  });
+
+  // OBS URL Y COPIAR
+  const obsUrl = location.origin + "/voz/player";
+  $("#urlobs").textContent = obsUrl;
+  $("#btn_copiar_obs").onclick = () => {
+    navigator.clipboard.writeText(obsUrl).then(() => {
+      $("#btn_copiar_obs").textContent = "✓ ¡Copiado!";
+      showToast("Enlace de OBS copiado al portapapeles");
+      setTimeout(() => $("#btn_copiar_obs").textContent = "📋 Copiar enlace", 2000);
+    });
+  };
+  $("#btn_preview_obs").onclick = () => window.open(obsUrl, "_blank", "width=550,height=300");
+
+  // VINCULAR CAMPOS AUTOMÁTICOS
+  document.querySelectorAll("[data-k]").forEach(e => {
+    e.onchange = () => {
+      api("/api/voz", { [e.dataset.k]: val(e) }).then(() => {
+        showToast("Configuración guardada");
+        refrescar();
+      });
+    };
+  });
+
+  // SLIDERS LIVE VALUE
+  $("#rng_vol_ia").oninput = e => $("#lbl_vol_ia").textContent = e.target.value + "%";
+  $("#rng_vol").oninput = e => $("#lbl_vol").textContent = e.target.value + "%";
+  $("#rng_vel").oninput = e => $("#lbl_vel").textContent = e.target.value;
+
+  // GESTIÓN DE CHIPS DE AUTORIZADOS
+  function renderChips(permitidos) {
+    const cont = $("#chips_container");
+    cont.replaceChildren();
+
+    const lista = (permitidos || []).filter(Boolean);
+    if (lista.length === 0) {
+      cont.innerHTML = '<span class="mut" style="font-size:12px;padding:4px 6px;">Ningún usuario añadido aún. Escribe uno abajo o haz clic en los donadores detectados.</span>';
+      return;
+    }
+
+    lista.forEach(user => {
+      const chip = document.createElement("span");
+      chip.className = "user-chip";
+      chip.innerHTML = `
+        <span>👑 @${escapeHtml(user)}</span>
+        <button type="button" class="btn-chip-del" title="Quitar de autorizados">✕</button>
+      `;
+
+      chip.querySelector(".btn-chip-del").onclick = async () => {
+        await api("/api/voz/quitar_autorizado", { usuario: user });
+        showToast(`@${user} quitado de autorizados`);
+        refrescar();
+      };
+
+      cont.appendChild(chip);
+    });
+  }
+
+  // AGREGAR AUTORIZADO MANUALMENTE
+  async function agregarAutorizadoManual() {
+    const inp = $("#inp_nuevo_autorizado");
+    const u = inp.value.trim().replace(/^@/, "");
+    if (!u) return;
+
+    await api("/api/voz/agregar_autorizado", { usuario: u });
+    showToast(`@${u} añadido a Voces IA`);
+    inp.value = "";
+    refrescar();
+  }
+
+  $("#btn_agregar_autorizado").onclick = agregarAutorizadoManual;
+  $("#inp_nuevo_autorizado").onkeydown = e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      agregarAutorizadoManual();
+    }
+  };
+
+  // VACIAR AUTORIZADOS
+  $("#btn_vaciar_autorizados").onclick = async () => {
+    if (!confirm("¿Seguro que deseas vaciar la lista de autorizados?")) return;
+    await api("/api/voz", { bulma_usuarios_permitidos: [] });
+    showToast("Lista de autorizados vaciada");
+    refrescar();
+  };
+
+  // AÑADIR TODOS LOS VIPS Y DONADORES (1 CLIC)
+  $("#btn_autorizar_todos_vips").onclick = async () => {
+    await api("/api/voz/agregar_todos_candidatos", {});
+    showToast("¡Todos los VIPs y Donadores añadidos!");
+    refrescar();
+  };
+
+  // RENDER CANDIDATOS DETECTADOS (KICK, TIKTOK, STREAMLOOTS, VIPS)
+  function renderCandidatos(candidatos) {
+    const cont = $("#candidatos_grid");
+    cont.replaceChildren();
+
+    if (!candidatos || candidatos.length === 0) {
+      cont.innerHTML = '<p class="mut" style="grid-column:1/-1;">No se detectaron donadores ni VIPs registrados en este momento.</p>';
+      return;
+    }
+
+    candidatos.forEach(c => {
+      const card = document.createElement("div");
+      card.className = "candidate-card";
+
+      const badgeCol = c.badge_color || "#00e5ff";
+      card.innerHTML = `
+        <div class="candidate-info">
+          <span class="candidate-icon">${c.icono || '⭐'}</span>
+          <div class="candidate-text">
+            <span class="candidate-name">${escapeHtml(c.nombre)}</span>
+            <div class="candidate-sub">
+              <span class="badge-origin" style="background:${badgeCol}22;color:${badgeCol};border:1px solid ${badgeCol}55;">
+                ${escapeHtml(c.origen)}
+              </span>
+              <span>@${escapeHtml(c.usuario)}</span>
+              ${c.detalle ? `<span style="color:#64748b;">· ${escapeHtml(c.detalle)}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="candidate-action">
+          ${c.ya_autorizado ? `
+            <button type="button" class="btn secondary btn-quitar-c" style="padding:4px 10px;font-size:11px;color:#34d399;border-color:#34d39944;">
+              ✓ Autorizado <span style="color:#94a3b8;margin-left:4px;">✕</span>
+            </button>
+          ` : `
+            <button type="button" class="btn cyan btn-add-c" style="padding:4px 12px;font-size:11px;">
+              + Añadir a Voces IA
+            </button>
+          `}
+        </div>
+      `;
+
+      const btnAdd = card.querySelector(".btn-add-c");
+      if (btnAdd) {
+        btnAdd.onclick = async () => {
+          await api("/api/voz/agregar_autorizado", { usuario: c.usuario });
+          showToast(`¡@${c.usuario} añadido a Voces IA!`);
+          refrescar();
+        };
+      }
+
+      const btnQuit = card.querySelector(".btn-quitar-c");
+      if (btnQuit) {
+        btnQuit.onclick = async () => {
+          await api("/api/voz/quitar_autorizado", { usuario: c.usuario });
+          showToast(`@${c.usuario} quitado de autorizados`);
+          refrescar();
+        };
+      }
+
+      cont.appendChild(card);
+    });
+  }
+
+  function escapeHtml(str) {
+    return String(str || "").replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m]);
+  }
+
+  // COLOR SWATCHES Y PREVIEW
+  function actualizarPreview() {
+    const nom = $("#nv_nombre").value.trim() || "PERSONAJE";
+    const emoji = $("#nv_emoji").value.trim() || "🤖";
+    const col = $("#nv_color").value || "#00e5ff";
+    
+    $("#prev_emoji").textContent = emoji;
+    $("#prev_tag").textContent = nom.toUpperCase() + " (VOZ IA)";
+    $("#prev_tag").style.background = col + "22";
+    $("#prev_tag").style.color = col;
+    $("#prev_tag").style.borderColor = col + "66";
+    $("#prev_bubble").style.borderColor = col;
+    $("#prev_bubble").style.boxShadow = `0 0 16px ${col}55`;
+  }
+
+  $("#nv_nombre").oninput = actualizarPreview;
+  $("#nv_emoji").oninput = actualizarPreview;
+  $("#nv_color").oninput = actualizarPreview;
+
+  document.querySelectorAll(".color-dot").forEach(dot => {
+    dot.onclick = () => {
+      document.querySelectorAll(".color-dot").forEach(d => d.classList.remove("active"));
+      dot.classList.add("active");
+      $("#nv_color").value = dot.dataset.c;
+      actualizarPreview();
+    };
+  });
+
+  // TOGGLE FORMULARIO NUEVA VOZ
+  $("#btn_toggle_nueva_voz").onclick = () => {
+    const f = $("#form_nueva_voz");
+    f.style.display = f.style.display === "none" ? "block" : "none";
+    if (f.style.display === "block") {
+      $("#nv_nombre").focus();
+      actualizarPreview();
+    }
+  };
+  $("#btn_cancelar_nueva_voz").onclick = $("#btn_cancelar_nueva_voz_2").onclick = () => {
+    $("#form_nueva_voz").style.display = "none";
+  };
+
+  // GUARDAR NUEVA VOZ
+  $("#btn_guardar_nueva_voz").onclick = async () => {
+    const nom = $("#nv_nombre").value.trim();
+    const cmd = $("#nv_comando").value.trim().toLowerCase().replace(/^!/, "");
+    const midRaw = $("#nv_model_id").value.trim();
+    const emoji = $("#nv_emoji").value.trim() || "🤖";
+    const color = $("#nv_color").value || "#00e5ff";
+
+    if (!nom || !cmd || !midRaw) {
+      return alert("Por favor completa el nombre, comando y el enlace o ID de Fish Audio.");
+    }
+
+    const midMatch = midRaw.match(/([a-f0-9]{32})/i);
+    const mid = midMatch ? midMatch[1].toLowerCase() : midRaw;
+
+    const nuevaVoz = {
+      id: cmd,
+      nombre: nom,
+      comando: cmd,
+      comandos_extra: [nom.toLowerCase()],
+      model_id: mid,
+      emoji: emoji,
+      color: color,
+      activo: true
+    };
+
+    const listaActual = Array.isArray(cfg.voces_ia) ? [...cfg.voces_ia] : [];
+    listaActual.push(nuevaVoz);
+
+    await api("/api/voz/voces_ia", { voces_ia: listaActual });
+    showToast(`¡Voz de ${nom} agregada con éxito!`);
+    $("#nv_nombre").value = "";
+    $("#nv_comando").value = "";
+    $("#nv_model_id").value = "";
+    $("#form_nueva_voz").style.display = "none";
+    refrescar();
+  };
+
+  // CONSOLA DEL STREAMER
+  $("#btn_streamer_bulma").onclick = () => {
+    const t = $("#streamer_bulma_txt").value.trim();
+    const vid = $("#streamer_voz_sel").value || "bulma";
+    if (!t) return alert("Escribe un mensaje para decir en vivo.");
+    
+    api("/api/voz/decir_ia", { texto: t, voz_id: vid }).then(r => {
+      if (r.ok) {
+        $("#streamer_bulma_txt").value = "";
+        showToast("¡Enviado a OBS para reproducir!");
+      } else {
+        alert(r.error || "No se pudo reproducir.");
+      }
+    });
+  };
+
+  // RENDER VOCES IA EN FORMATO TIKFINITY
+  function renderVocesIA(voces) {
+    const cont = $("#lista_voces_ia");
+    const selStreamer = $("#streamer_voz_sel");
+    cont.replaceChildren();
+    selStreamer.replaceChildren();
+
+    (voces || []).forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v.id || v.comando;
+      opt.textContent = `${v.emoji || '🤖'} ${v.nombre} (!${v.comando})`;
+      selStreamer.append(opt);
+
+      const item = document.createElement("div");
+      item.className = "voice-item";
+      item.style.borderLeft = `4px solid ${v.color || '#00e5ff'}`;
+
+      const col = v.color || '#00e5ff';
+      item.innerHTML = `
+        <div class="voice-avatar" style="border: 2px solid ${col}; box-shadow: 0 0 12px ${col}44;">
+          ${v.emoji || '🤖'}
+        </div>
+        <div class="voice-main">
+          <div class="voice-header">
+            <span class="voice-name">${v.nombre}</span>
+            <span class="cmd-badge" style="color:${col};border-color:${col}66;background:${col}1a;">!${v.comando}</span>
+          </div>
+          <div class="id-pill">
+            <span>Model ID:</span>
+            <code>${v.model_id ? v.model_id.slice(0, 12) + '...' : 'Sintética'}</code>
+          </div>
+        </div>
+        <div class="voice-actions">
+          <button type="button" class="btn secondary btn-test-ia" style="color:${col};border-color:${col}55;">
+            ▶ Probar
+          </button>
+        </div>
+      `;
+
+      item.querySelector(".btn-test-ia").onclick = () => {
+        api("/api/voz/probar_ia", { voz_id: v.id || v.comando }).then(r => {
+          if (r.ok) showToast(`Probando voz de ${v.nombre}...`);
+          else alert(r.error || "Abre /voz/player en OBS para escuchar.");
+        });
+      };
+
+      if (v.id !== "bulma") {
+        const btnDel = document.createElement("button");
+        btnDel.type = "button";
+        btnDel.className = "btn danger";
+        btnDel.textContent = "✕";
+        btnDel.title = "Eliminar voz";
+        btnDel.onclick = async () => {
+          if (!confirm(`¿Eliminar la voz de ${v.nombre}?`)) return;
+          const nuevas = (cfg.voces_ia || []).filter(x => (x.id || x.comando) !== (v.id || v.comando));
+          await api("/api/voz/voces_ia", { voces_ia: nuevas });
+          showToast(`Voz de ${v.nombre} eliminada`);
+          refrescar();
+        };
+        item.querySelector(".voice-actions").append(btnDel);
+      }
+
+      cont.append(item);
+    });
+  }
+
+  // ACCIONES TTS NORMAL
+  $("#probar").onclick = () => api("/api/voz/probar", {}).then(r => {
+    if (r.ok) showToast("Probando voz normal en OBS...");
+    else alert(r.error || "No se pudo reproducir.");
+  });
+  $("#saltar").onclick = () => api("/api/voz/saltar", {}).then(() => showToast("Mensaje saltado"));
+  $("#vaciar").onclick = () => api("/api/voz/vaciar", {}).then(() => {
+    showToast("Cola de voz vaciada");
+    refrescar();
+  });
+
+  let motorVoces = null;
+  async function cargarVoces() {
+    motorVoces = cfg.motor;
+    const sel = $("#voces");
+    sel.replaceChildren();
+    const lista = cfg.motor === "ventana"
+      ? speechSynthesis.getVoices().slice().sort((a,b) => b.lang.startsWith("es") - a.lang.startsWith("es")).map(v => ({ id: v.name, nombre: v.name }))
+      : await api("/api/voz/voces");
+    if (cfg.motor === "ventana") sel.append(new Option("Predeterminada del navegador", ""));
+    lista.forEach(x => {
+      if (typeof x === "string") sel.append(new Option(x, x));
+      else sel.append(new Option(x.nombre || x.id, x.id));
+    });
+    sel.value = cfg.motor === "ventana" ? cfg.voz_ventana : cfg.voz;
+  }
+  $("#voces").onchange = e => api("/api/voz", { [cfg.motor === "ventana" ? "voz_ventana" : "voz"]: e.target.value });
+  speechSynthesis.onvoiceschanged = () => { if (cfg.motor === "ventana") cargarVoces(); };
+
+  // ACTUALIZACIÓN DE ESTADO GENERAL
+  async function refrescar() {
+    const d = await api("/api/voz");
+    cfg = d.cfg;
+
+    // Estado OBS / Ventana
+    const badge = $("#obs_status_badge");
+    if (d.ventana) {
+      badge.className = "status-badge on";
+      badge.textContent = "🟢 OBS Conectado";
+    } else {
+      badge.className = "status-badge off";
+      badge.textContent = "🔴 OBS Desconectado";
+    }
+
+    $("#abrirv").style.display = cfg.motor === "ventana" ? "inline-flex" : "none";
+    $("#hint").textContent = {
+      obs: "💡 Suena en la fuente de navegador de OBS (/voz/player) y OBS la gestiona como fuente de audio separada.",
+      ventana: "💡 Suena en una ventana aparte; en OBS usa «Captura de audio de aplicación».",
+      sistema: "💡 Suena por el audio general de Windows; en OBS se oye como «Audio del escritorio»."
+    }[cfg.motor] || "";
+
+    if (motorVoces !== cfg.motor) cargarVoces();
+
+    if (primera) {
+      primera = false;
+      document.querySelectorAll("[data-k]").forEach(e => {
+        const v = cfg[e.dataset.k];
+        if (e.type === "checkbox") e.checked = !!v;
+        else e.value = v;
+      });
+      $("#rng_vol_ia").value = cfg.bulma_volumen ?? 100;
+      $("#lbl_vol_ia").textContent = (cfg.bulma_volumen ?? 100) + "%";
+      $("#rng_vol").value = cfg.volumen ?? 100;
+      $("#lbl_vol").textContent = (cfg.volumen ?? 100) + "%";
+      $("#rng_vel").value = cfg.velocidad ?? 0;
+      $("#lbl_vel").textContent = cfg.velocidad ?? 0;
+    }
+
+    // Renderizar chips de usuarios autorizados
+    renderChips(cfg.bulma_usuarios_permitidos);
+
+    // Renderizar candidatos detectados (VIPs + Donadores)
+    renderCandidatos(d.candidatos);
+
+    // Renderizar lista de personajes IA
+    renderVocesIA(d.voces_ia || cfg.voces_ia);
+    $("#cola_status").textContent = "En cola: " + d.cola;
+
+    // Historial
+    const recBody = $("#rec_body");
+    recBody.replaceChildren();
+    if (!d.recientes || d.recientes.length === 0) {
+      recBody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#8b9bb4;padding:16px;">No hay comentarios leídos todavía.</td></tr>';
+    } else {
+      d.recientes.forEach(x => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b style="color:#00e5ff;">@${x.n}</b></td>
+          <td style="color:#f1f5f9;">${x.t}</td>
+          <td style="text-align:right;">
+            <button class="btn danger" style="padding:3px 8px;font-size:11px;">Silenciar</button>
+          </td>
+        `;
+        tr.querySelector("button").onclick = () => {
+          api("/api/voz/silenciar", { n: x.n }).then(() => {
+            showToast(`Usuario @${x.n} silenciado`);
+            refrescar();
+          });
+        };
+        recBody.appendChild(tr);
+      });
+    }
+
+    // Silenciados
+    const silBody = $("#sil_body");
+    silBody.replaceChildren();
+    if (!cfg.silenciados || cfg.silenciados.length === 0) {
+      silBody.innerHTML = '<tr><td colspan="2" style="text-align:center;color:#8b9bb4;padding:16px;">Ningún usuario silenciado.</td></tr>';
+    } else {
+      cfg.silenciados.forEach(x => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b style="color:#ff6b6b;">@${x}</b></td>
+          <td style="text-align:right;">
+            <button class="btn secondary" style="padding:3px 8px;font-size:11px;">Quitar silencio</button>
+          </td>
+        `;
+        tr.querySelector("button").onclick = () => {
+          api("/api/voz", { silenciados: cfg.silenciados.filter(y => y !== x) }).then(() => {
+            showToast(`Silencio quitado a @${x}`);
+            refrescar();
+          });
+        };
+        silBody.appendChild(tr);
+      });
+    }
+  }
+
+  refrescar();
+  setInterval(() => { if (document.visibilityState === "visible") refrescar(); }, 4000);
+</script>
+</body>
+</html>

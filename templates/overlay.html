@@ -1,0 +1,41 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta DB Legends</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="overlay-body">
+<main class="roulette-scene entering">
+<div class="energy energy-one"></div>
+<div class="energy energy-two"></div>
+<div class="energy energy-three"></div>
+<div id="particles" class="particles"></div>
+<div id="flash" class="energy-flash"></div>
+
+        <header class="roulette-header">
+            <span class="eyebrow">DB LEGENDS</span>
+            <h1>RULETA DE RETOS</h1>
+            <p>EL DESTINO DE LA PRÓXIMA BATALLA</p>
+        </header>
+
+        <div class="wheel-frame">
+            <div class="pointer"></div>
+            <canvas id="ruleta" width="800" height="800"></canvas>
+            <div class="wheel-center">
+                <span>DB</span>
+                <small>SPIN</small>
+            </div>
+        </div>
+
+        <section class="winner-panel">
+            <span class="eyebrow">TU SIGUIENTE DESAFÍO</span>
+            <h2 id="reto-ganador">Esperando el próximo giro...</h2>
+        </section>
+    </main>
+
+    <script src="/static/roulette.js"></script>
+</body>
+</html>

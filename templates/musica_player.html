@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <script src="/static/flujo.js"></script>
+  <title>Música (OBS)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      margin: 0;
+      background: transparent;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #fff;
+    }
+
+    #wrapper {
+      position: fixed;
+      left: 14px;
+      bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+      perspective: 800px;
+    }
+
+    /* POPUP DE PRÓXIMAS CANCIONES (!cola) */
+    #queue-popup {
+      background: rgba(12, 17, 34, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 181, 45, 0.45);
+      border-radius: 14px;
+      padding: 12px 16px;
+      width: 420px;
+      max-width: 90vw;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65), 0 0 20px rgba(255, 181, 45, 0.18);
+      opacity: 0;
+      transform: translateY(20px) scale(0.96);
+      transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #queue-popup.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .queue-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffd45e;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid rgba(255, 212, 94, 0.2);
+      padding-bottom: 6px;
+    }
+    .queue-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 160px;
+      overflow: hidden;
+    }
+    .queue-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 10px;
+      border-radius: 8px;
+      border-left: 3px solid #ffb52d;
+    }
+    .queue-item-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+    .queue-item-by {
+      font-size: 11px;
+      color: #94a3b8;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 7px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    /* REPRODUCTOR PRINCIPAL */
+    #card {
+      background: linear-gradient(135deg, rgba(13, 19, 39, 0.94) 0%, rgba(20, 29, 58, 0.90) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 181, 45, 0.35);
+      border-left: 5px solid #ffb52d;
+      border-radius: 16px;
+      padding: 12px 16px;
+      width: 420px;
+      max-width: 92vw;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65), 0 0 25px rgba(255, 181, 45, 0.15);
+      opacity: 0;
+      transform: translateY(25px) scale(0.97);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      position: relative;
+      overflow: hidden;
+    }
+    #card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, #ffb52d, transparent 75%);
+    }
+    #card.on {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    #card.paused {
+      filter: grayscale(0.85);
+      border-left-color: #64748b;
+    }
+
+    .main-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* DISCO / VINILO ANIMADO */
+    .disc-container {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+    }
+    .disc {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffb52d 12%, #111 13%, #222 28%, #111 30%, #282828 50%, #111 52%, #222 75%, #ffb52d 77%, #000 80%);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 10px rgba(255, 181, 45, 0.4);
+      animation: spin 6s linear infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .disc-center {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #0d1326;
+      border: 2px solid #ffb52d;
+    }
+    #card.paused .disc {
+      animation-play-state: paused;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* ECUALIZADOR BARRITAS */
+    .eq-badge {
+      position: absolute;
+      right: -2px;
+      bottom: -2px;
+      background: #0d1326;
+      border: 1px solid rgba(255, 181, 45, 0.5);
+      border-radius: 6px;
+      padding: 2px 4px;
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 16px;
+    }
+    .eq-bar {
+      width: 2.5px;
+      background: #ffb52d;
+      border-radius: 1px;
+      animation: bounce 1.2s ease-in-out infinite alternate;
+    }
+    .eq-bar:nth-child(1) { height: 8px; animation-delay: 0.1s; }
+    .eq-bar:nth-child(2) { height: 13px; animation-delay: 0.35s; }
+    .eq-bar:nth-child(3) { height: 10px; animation-delay: 0.2s; }
+    .eq-bar:nth-child(4) { height: 6px; animation-delay: 0.45s; }
+    #card.paused .eq-bar {
+      animation: none;
+      height: 3px;
+      background: #64748b;
+    }
+    @keyframes bounce {
+      0% { height: 3px; }
+      100% { height: 13px; }
+    }
+
+    /* INFO DE LA PISTA */
+    .track-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .track-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+      line-height: 1.25;
+    }
+    .track-sub {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* BADGES */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.2px;
+    }
+    .badge-streamer {
+      background: linear-gradient(90deg, #ff9900, #ffb52d);
+      color: #0b0f19;
+      font-weight: 700;
+      box-shadow: 0 0 8px rgba(255, 181, 45, 0.4);
+    }
+    .badge-user {
+      background: rgba(84, 219, 237, 0.16);
+      border: 1px solid rgba(84, 219, 237, 0.45);
+      color: #54dbed;
+    }
+    .badge-radio {
+      background: rgba(168, 85, 247, 0.2);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #c084fc;
+    }
+    .badge-skip {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(0.97); }
+    }
+
+    /* BARRA DE PROGRESO Y TIEMPO */
+    .progress-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .progress-bar-bg {
+      height: 5px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff7b00, #ffb52d, #ffe17d);
+      box-shadow: 0 0 10px rgba(255, 181, 45, 0.7);
+      border-radius: 3px;
+      transition: width 0.3s linear;
+    }
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #94a3b8;
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+<div id="wrapper">
+  <!-- POPUP DE PRÓXIMAS CANCIONES (!cola) -->
+  <div id="queue-popup">
+    <div class="queue-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+      <span>Próximas en cola</span>
+    </div>
+    <ul class="queue-list" id="queue-items"></ul>
+  </div>
+
+  <!-- TARJETA DEL REPRODUCTOR -->
+  <div id="card">
+    <div class="main-row">
+      <div class="disc-container">
+        <div class="disc">
+          <div class="disc-center"></div>
+        </div>
+        <div class="eq-badge">
+          <div class="eq-bar"></div>
+          <div class="eq-bar"></div>
+          <div class="eq-bar"></div>
+          <div class="eq-bar"></div>
+        </div>
+      </div>
+
+      <div class="track-info">
+        <div class="track-title" id="track-title">Cargando música...</div>
+        <div class="track-sub">
+          <span class="badge" id="badge-by">Elegida por el streamer</span>
+          <span class="badge badge-skip" id="badge-skip" style="display:none">⏭️ Skip: 0/3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-box">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <div class="time-row">
+        <span id="time-curr">0:00</span>
+        <span id="time-total">0:00</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<audio id="audio-el"></audio>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const audio = $("audio-el"), card = $("card"), qPopup = $("queue-popup"), qList = $("queue-items");
+  let currentId = null, bootId = null, queueHideTimer = null;
+  let switchingTrack = false, trackLoadTimer = null;
+
+  if (new URLSearchParams(location.search).get("ui") === "0") {
+    $("wrapper").remove();
+  }
+
+  const clientId = Math.random().toString(36).slice(2);
+
+  const fmtTime = s => {
+    if (!s || isNaN(s) || s < 0) return "0:00";
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return m + ":" + (sec < 10 ? "0" : "") + sec;
+  };
+
+  function mostrarPopupCola(proximas) {
+    if (!qPopup || !qList) return;
+    qList.innerHTML = "";
+    if (!proximas || proximas.length === 0) {
+      const li = document.createElement("li");
+      li.className = "queue-item";
+      li.innerHTML = '<span class="queue-item-name" style="color:#94a3b8">No hay más canciones en espera</span>';
+      qList.appendChild(li);
+    } else {
+      proximas.slice(0, 4).forEach((item, idx) => {
+        const li = document.createElement("li");
+        li.className = "queue-item";
+        const by = item.por === "streamer" ? "Streamer" : "@" + item.por;
+        li.innerHTML = `
+          <span class="queue-item-name">${idx + 1}. ${escapeHtml(item.titulo)}</span>
+          <span class="queue-item-by">${escapeHtml(by)}</span>
+        `;
+        qList.appendChild(li);
+      });
+    }
+
+    qPopup.classList.add("visible");
+    clearTimeout(queueHideTimer);
+    queueHideTimer = setTimeout(() => {
+      qPopup.classList.remove("visible");
+    }, 9000);
+  }
+
+  function escapeHtml(str) {
+    return String(str || "").replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m]);
+  }
+
+  async function sync() {
+    let data;
+    try {
+      data = await (await fetch("/api/musica/cola", { cache: "no-store" })).json();
+    } catch {
+      return;
+    }
+
+    audio.volume = Math.max(0, Math.min(1, data.volumen ?? 0.5));
+    const active = data.cola.find(q => q.estado === "reproduciendo");
+
+    if (!active) {
+      if (currentId !== null) {
+        currentId = null;
+        switchingTrack = true;
+        try { audio.pause(); } catch {}
+        audio.removeAttribute("src");
+        setTimeout(() => { switchingTrack = false; }, 300);
+      }
+      if (card) card.classList.remove("on");
+      return;
+    }
+
+    if (active.id !== currentId) {
+      currentId = active.id;
+      switchingTrack = true;
+      clearTimeout(trackLoadTimer);
+      const targetSrc = "/musica/archivo/" + encodeURIComponent(active.archivo);
+      if (audio.src !== targetSrc) {
+        audio.src = targetSrc;
+      }
+      trackLoadTimer = setTimeout(() => {
+        switchingTrack = false;
+      }, 1500);
+
+      audio.onloadedmetadata = () => {
+        switchingTrack = false;
+        if (data.pos > 2) {
+          audio.currentTime = Math.min(data.pos, audio.duration || data.pos);
+        }
+      };
+    }
+
+    if (data.pausado) {
+      audio.pause();
+    } else if (audio.paused && !switchingTrack) {
+      audio.play().catch(() => {});
+    }
+
+    if (card) {
+      $("track-title").textContent = active.titulo;
+      
+      const badge = $("badge-by");
+      if (active.por === "streamer") {
+        badge.className = "badge badge-streamer";
+        badge.textContent = "👑 Elegida por el streamer";
+      } else if (active.por === "radio") {
+        badge.className = "badge badge-radio";
+        badge.textContent = "📻 Modo Radio";
+      } else {
+        badge.className = "badge badge-user";
+        badge.textContent = "🎧 Pedida por: " + active.por;
+      }
+
+      // Votos de skip
+      const skipBadge = $("badge-skip");
+      if (data.skip && data.skip.votos > 0) {
+        skipBadge.style.display = "inline-flex";
+        skipBadge.textContent = `⏭️ Skip: ${data.skip.votos}/${data.skip.meta}`;
+      } else {
+        skipBadge.style.display = "none";
+      }
+
+      card.classList.add("on");
+      card.classList.toggle("paused", !!data.pausado);
+
+      // Si está pausada indicar en tiempo o badge
+      if (active.dur) {
+        $("time-total").textContent = fmtTime(active.dur);
+      }
+    }
+  }
+
+  audio.onended = () => {
+    if (currentId && !switchingTrack) {
+      const finishedId = currentId;
+      fetch("/api/musica/siguiente", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: finishedId })
+      }).catch(() => {});
+    }
+  };
+
+  audio.onerror = (e) => {
+    // Si estamos cambiando de pista o la URL está vacía, ignorar (no saltar)
+    if (switchingTrack || !audio.src || !currentId) return;
+    console.warn("Aviso de audio:", currentId, e);
+    const errId = currentId;
+    setTimeout(() => {
+      if (currentId === errId && !switchingTrack && audio.error) {
+        fetch("/api/musica/siguiente", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: errId })
+        }).catch(() => {});
+      }
+    }, 1500);
+  };
+
+  // Actualización fluida de la barra de progreso
+  setInterval(() => {
+    if (!card || audio.paused || !audio.duration) return;
+    const dur = audio.duration || 1;
+    const curr = audio.currentTime || 0;
+    $("progress-fill").style.width = Math.min(100, (curr / dur) * 100) + "%";
+    $("time-curr").textContent = fmtTime(curr);
+    $("time-total").textContent = fmtTime(dur);
+  }, 350);
+
+  // Escucha SSE
+  const es = new Flujo("musica");
+  es.addEventListener("musica", sync);
+  es.onopen = sync;
+  es.addEventListener("musica_cola", e => {
+    try {
+      const d = JSON.parse(e.data);
+      if (d && d.proximas) mostrarPopupCola(d.proximas);
+    } catch {}
+  });
+  es.addEventListener("boot", e => {
+    const b = JSON.parse(e.data).id;
+    if (bootId && bootId !== b) location.reload();
+    bootId = b;
+  });
+
+  setInterval(sync, 3000);
+
+  const heartbeat = () => fetch("/api/musica/latido", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ c: clientId, t: "obs" })
+  }).catch(() => {});
+  setInterval(heartbeat, 5000);
+  heartbeat();
+</script>
+</body>
+</html>

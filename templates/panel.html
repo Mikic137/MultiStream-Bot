@@ -1,0 +1,214 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DB Legends - Panel de retos</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="panel-body">
+    <main class="panel">
+        <header class="header">
+            <span class="eyebrow">DB LEGENDS CHALLENGE BOT</span>
+            <h1>Centro de retos</h1>
+            <p>Tu directo. Tus reglas. El chat decide.</p>
+        </header>
+        
+        <section class="card tiktok-card">
+            <div class="section-heading">
+                <h2>Conexión con TikTok LIVE</h2>
+                <span id="tiktok-indicador" class="tiktok-dot checking"></span>
+            </div>
+
+            <p id="tiktok-estado" class="tiktok-status">
+                Comprobando conexión...
+            </p>
+
+            <p id="tiktok-usuario" class="hint">
+                Cuenta: No conectada
+            </p>
+
+            <p id="tiktok-error" class="message"></p>
+        </section>
+
+
+        <section class="card">
+            <h2>Crear un reto</h2>
+            <form id="reto-form">
+                <input id="reto-input" type="text"
+                    maxlength="100"
+                    placeholder="Ej. Gana sin usar Rising Rush"
+                    required>
+                <button class="button button-primary" type="submit">
+                    + Añadir reto
+                </button>
+            </form>
+            <p id="mensaje" class="message"></p>
+        </section>
+
+        <section class="card">
+            <div class="section-heading">
+                <h2>Retos disponibles</h2>
+                <span id="contador" class="counter">0</span>
+            </div>
+            <ul id="lista-retos" class="challenge-list"></ul>
+
+            <button id="girar-btn" class="button button-spin">
+                ✦ GIRAR RULETA ✦
+            </button>
+            <p class="hint">El reto seleccionado aparecerá en el overlay.</p>
+        </section>
+
+        <section class="card result-card">
+            <span class="eyebrow">ÚLTIMO RESULTADO</span>
+            <h2 id="resultado">La próxima misión te espera...</h2>
+        </section>
+    </main>
+
+    <script>
+        const lista = document.getElementById("lista-retos");
+        const contador = document.getElementById("contador");
+        const input = document.getElementById("reto-input");
+        const mensaje = document.getElementById("mensaje");
+        const resultado = document.getElementById("resultado");
+        const girarBtn = document.getElementById("girar-btn");
+
+        async function cargarRetos() {
+            const response = await fetch("/api/retos");
+            const data = await response.json();
+
+            lista.replaceChildren();
+            contador.textContent = data.retos.length;
+
+            data.retos.forEach((reto, indice) => {
+                const li = document.createElement("li");
+                li.className = "challenge-item";
+
+                const texto = document.createElement("span");
+                texto.textContent = reto;
+
+                const eliminar = document.createElement("button");
+                eliminar.textContent = "×";
+                eliminar.className = "delete-btn";
+                eliminar.title = "Eliminar reto";
+                eliminar.onclick = async () => {
+                    await fetch(`/api/retos/${indice}`, {
+                        method: "DELETE"
+                    });
+                    await cargarRetos();
+                };
+
+                li.append(texto, eliminar);
+                lista.appendChild(li);
+            });
+
+            if (data.reto_actual) {
+                resultado.textContent = data.reto_actual;
+            }
+        }
+
+        document.getElementById("reto-form").addEventListener("submit",
+            async (event) => {
+                event.preventDefault();
+                const reto = input.value.trim();
+                if (!reto) return;
+
+                const response = await fetch("/api/retos", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({reto})
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    mensaje.textContent = data.error || "No se pudo añadir.";
+                    return;
+                }
+
+                input.value = "";
+                mensaje.textContent = "¡Reto añadido!";
+                await cargarRetos();
+            }
+        );
+
+        girarBtn.addEventListener("click", async () => {
+            girarBtn.disabled = true;
+            girarBtn.textContent = "✦ GIRANDO...";
+
+            try {
+                const response = await fetch("/api/girar", {
+                    method: "POST"
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    mensaje.textContent = data.error;
+                    return;
+                }
+
+                resultado.textContent = data.reto_actual;
+                mensaje.textContent = "¡Reto seleccionado!";
+            } catch {
+                mensaje.textContent = "No se pudo contactar con el servidor.";
+            } finally {
+                girarBtn.disabled = false;
+                girarBtn.textContent = "✦ GIRAR RULETA ✦";
+                await cargarRetos();
+            }
+        });
+
+
+        const tiktokIndicador = document.getElementById("tiktok-indicador");
+        const tiktokEstado = document.getElementById("tiktok-estado");
+        const tiktokUsuario = document.getElementById("tiktok-usuario");
+        const tiktokError = document.getElementById("tiktok-error");
+
+        async function actualizarEstadoTikTok() {
+            try {
+                const response = await fetch("/api/tiktok/estado", {
+                    cache: "no-store"
+                });
+
+                if (!response.ok) {
+                    throw new Error("El servidor no respondió correctamente.");
+                }
+
+                const data = await response.json();
+
+                tiktokUsuario.textContent = "Cuenta: " + data.usuario;
+                tiktokIndicador.className = "tiktok-dot";
+
+                if (data.estado === "en_directo" && data.en_directo) {
+                    tiktokEstado.textContent = "¡Estás EN DIRECTO!";
+                    tiktokIndicador.classList.add("live");
+                } else if (data.estado === "error") {
+                    tiktokEstado.textContent = "Error al consultar TikTok";
+                    tiktokIndicador.classList.add("error");
+                } else if (data.estado === "iniciando") {
+                    tiktokEstado.textContent = "Comprobando estado...";
+                    tiktokIndicador.classList.add("checking");
+                } else {
+                    tiktokEstado.textContent = "Fuera de directo";
+                    tiktokIndicador.classList.add("offline");
+                }
+
+                tiktokError.textContent = data.ultimo_error
+                    ? "Detalle: " + data.ultimo_error
+                    : "";
+            } catch (error) {
+                tiktokEstado.textContent = "No se puede consultar el servidor";
+                tiktokIndicador.className = "tiktok-dot error";
+                tiktokError.textContent = error.message;
+            }
+        }
+
+        cargarRetos();
+        actualizarEstadoTikTok();
+
+        setInterval(cargarRetos, 3000);
+        setInterval(actualizarEstadoTikTok, 5000);
+
+    </script>
+</body>
+</html>

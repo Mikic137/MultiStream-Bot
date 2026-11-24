@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script src="/static/flujo.js"></script>
+<title>Top Donadores Live - Lista de Regalos y Dinero (OBS)</title>
+<style>
+  :root {
+    --gold: #ffd45e;
+    --gold-glow: rgba(255, 212, 94, 0.45);
+    --cyan: #38bdf8;
+    --cyan-glow: rgba(56, 189, 248, 0.4);
+    --green: #4ade80;
+    --green-glow: rgba(74, 222, 128, 0.4);
+    --border: rgba(255, 255, 255, 0.14);
+    --bg: rgba(11, 18, 32, 0.94);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    color: #fff;
+    user-select: none;
+  }
+
+  .contenedor {
+    padding: 14px;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Tarjeta contenedora de Tops */
+  .card-top {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 18px;
+    padding: 14px 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 340px;
+    max-width: 440px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Cabecera */
+  .top-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .corona-box {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffd45e, #ff9500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 12px var(--gold-glow);
+    flex-shrink: 0;
+    animation: flotarCorona 2.5s infinite ease-in-out;
+  }
+
+  @keyframes flotarCorona {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-3px) rotate(4deg); }
+  }
+
+  .corona-box svg {
+    width: 18px;
+    height: 18px;
+    fill: #1a1100;
+  }
+
+  .top-title {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  /* Tabs conmutadores si se usa modo dual o rotativo */
+  .tabs-bar {
+    display: flex;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 3px;
+    border-radius: 10px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 5px 8px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .tab-btn.activo {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  .tab-btn.tab-regalos.activo { color: var(--cyan); }
+  .tab-btn.tab-dinero.activo { color: var(--green); }
+
+  /* Secciones de listas */
+  .seccion-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .seccion-lista.oculto {
+    display: none;
+  }
+
+  .fila-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.2s, background 0.2s;
+  }
+  .fila-top:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .user-badge-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .pos-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  .pos-1 { background: linear-gradient(135deg, #ffd700, #ff9500); color: #000; box-shadow: 0 0 10px rgba(255, 215, 0, 0.45); }
+  .pos-2 { background: linear-gradient(135deg, #e2e8f0, #94a3b8); color: #000; }
+  .pos-3 { background: linear-gradient(135deg, #d97706, #92400e); color: #fff; }
+  .pos-other { background: rgba(255, 255, 255, 0.1); color: #cbd5e1; }
+
+  .user-nombre {
+    font-size: 14px;
+    font-weight: 800;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
+
+  .val-badge {
+    font-family: Consolas, monospace;
+    font-size: 14px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .val-regalos { color: var(--cyan); text-shadow: 0 0 8px var(--cyan-glow); }
+  .val-dinero { color: var(--green); text-shadow: 0 0 8px var(--green-glow); }
+
+  .lista-vacia {
+    font-size: 12px;
+    color: #94a3b8;
+    text-align: center;
+    padding: 12px;
+    font-style: italic;
+  }
+
+  /* Modo Doble Columna / Paralelo */
+  .modo-paralelo .card-top {
+    max-width: 720px;
+  }
+  .modo-paralelo .grid-paralelo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="contenedor" id="contenedor">
+  <div class="card-top">
+    <!-- Header -->
+    <div class="top-header">
+      <div class="header-left">
+        <div class="corona-box">
+          <svg viewBox="0 0 24 24">
+            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+          </svg>
+        </div>
+        <span class="top-title" id="titulo_top">TOP DONADORES</span>
+      </div>
+
+      <!-- Conmutador Tabs -->
+      <div class="tabs-bar" id="tabs_bar">
+        <button class="tab-btn tab-regalos activo" id="btn_tab_regalos" onclick="cambiarTab('regalos')">🎁 Regalos</button>
+        <button class="tab-btn tab-dinero" id="btn_tab_dinero" onclick="cambiarTab('dinero')">💵 Dinero</button>
+      </div>
+    </div>
+
+    <!-- Contenido de las Listas -->
+    <div id="grid_listas">
+      <!-- Lista Regalos (TikTok Diamantes) -->
+      <div class="seccion-lista" id="sec_regalos">
+        <div style="font-size:11px;font-weight:800;color:var(--cyan);margin-bottom:2px;letter-spacing:0.04em;">🎁 TOP REGALOS (TIKTOK)</div>
+        <div class="lista-vacia" id="empty_regalos">Aún no hay regalos registrados en este directo.</div>
+        <div id="rows_regalos"></div>
+      </div>
+
+      <!-- Lista Dinero (Kick / USD) -->
+      <div class="seccion-lista oculto" id="sec_dinero">
+        <div style="font-size:11px;font-weight:800;color:var(--green);margin-bottom:2px;letter-spacing:0.04em;">💵 TOP DONACIONES ($ USD / KICK)</div>
+        <div class="lista-vacia" id="empty_dinero">Aún no hay donaciones en dinero registradas.</div>
+        <div id="rows_dinero"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+
+// Configuración por parámetros de URL
+const modoParam = params.get("modo") || "dual"; // "dual", "regalos", "dinero", "rotar", "paralelo"
+let tabActual = "regalos";
+
+if (modoParam === "paralelo") {
+  document.body.classList.add("modo-paralelo");
+  $("tabs_bar").style.display = "none";
+  $("grid_listas").classList.add("grid-paralelo");
+  $("sec_regalos").classList.remove("oculto");
+  $("sec_dinero").classList.remove("oculto");
+} else if (modoParam === "regalos") {
+  $("tabs_bar").style.display = "none";
+  $("sec_regalos").classList.remove("oculto");
+  $("sec_dinero").classList.add("oculto");
+} else if (modoParam === "dinero") {
+  $("tabs_bar").style.display = "none";
+  $("sec_regalos").classList.add("oculto");
+  $("sec_dinero").classList.remove("oculto");
+}
+
+function cambiarTab(tab) {
+  if (modoParam === "paralelo") return;
+  tabActual = tab;
+  $("btn_tab_regalos").classList.toggle("activo", tab === "regalos");
+  $("btn_tab_dinero").classList.toggle("activo", tab === "dinero");
+  $("sec_regalos").classList.toggle("oculto", tab !== "regalos");
+  $("sec_dinero").classList.toggle("oculto", tab !== "dinero");
+}
+
+function formatearNum(n) {
+  return Number(n || 0).toLocaleString("es-ES");
+}
+
+function renderTopDonadores(data) {
+  if (!data) return;
+  const cfg = data.top_donador || data;
+
+  if (cfg.titulo) $("titulo_top").textContent = cfg.titulo;
+
+  // 1. Renderizar Top Regalos
+  const regalosList = cfg.top_regalos || [];
+  const emptyRegalos = $("empty_regalos");
+  const rowsRegalos = $("rows_regalos");
+
+  if (!regalosList || regalosList.length === 0) {
+    emptyRegalos.style.display = "block";
+    rowsRegalos.innerHTML = "";
+  } else {
+    emptyRegalos.style.display = "none";
+    rowsRegalos.innerHTML = regalosList.map((item, idx) => {
+      const pos = idx + 1;
+      const medalClass = pos === 1 ? "pos-1" : pos === 2 ? "pos-2" : pos === 3 ? "pos-3" : "pos-other";
+      const icon = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : `#${pos}`;
+      return `
+        <div class="fila-top">
+          <div class="user-badge-box">
+            <div class="pos-badge ${medalClass}">${icon}</div>
+            <div class="user-nombre">@${item.usuario}</div>
+          </div>
+          <div class="val-badge val-regalos">${formatearNum(item.diamantes)} 💎</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // 2. Renderizar Top Dinero
+  const dineroList = cfg.top_dinero || [];
+  const emptyDinero = $("empty_dinero");
+  const rowsDinero = $("rows_dinero");
+
+  if (!dineroList || dineroList.length === 0) {
+    emptyDinero.style.display = "block";
+    rowsDinero.innerHTML = "";
+  } else {
+    emptyDinero.style.display = "none";
+    rowsDinero.innerHTML = dineroList.map((item, idx) => {
+      const pos = idx + 1;
+      const medalClass = pos === 1 ? "pos-1" : pos === 2 ? "pos-2" : pos === 3 ? "pos-3" : "pos-other";
+      const icon = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : `#${pos}`;
+      const txt = item.dinero_txt || (typeof item.dinero === "number" ? `$${item.dinero.toFixed(2)} USD` : String(item.dinero));
+      return `
+        <div class="fila-top">
+          <div class="user-badge-box">
+            <div class="pos-badge ${medalClass}">${icon}</div>
+            <div class="user-nombre">@${item.usuario}</div>
+          </div>
+          <div class="val-badge val-dinero">${txt}</div>
+        </div>
+      `;
+    }).join("");
+  }
+}
+
+// Rotación automática si está configurada o solicitada en URL
+if (modoParam === "rotar" || modoParam === "dual") {
+  setInterval(() => {
+    cambiarTab(tabActual === "regalos" ? "dinero" : "regalos");
+  }, 7000);
+}
+
+// Carga inicial y polling
+async function actualizar() {
+  try {
+    const res = await fetch("/api/tops");
+    if (res.ok) {
+      const d = await res.json();
+      renderTopDonadores(d.top_donador);
+    }
+  } catch (err) {
+    console.error("Error top donador fetch:", err);
+  }
+}
+
+// Eventos en vivo
+if (window.flujo) {
+  flujo.on("top_donador", d => renderTopDonadores(d));
+  flujo.on("tops_cfg", d => renderTopDonadores(d.top_donador));
+}
+
+actualizar();
+setInterval(actualizar, 2000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Alertas MultiStream - Panel</title>
+<style>
+*{box-sizing:border-box}
+body{font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#0d111a;color:#e2e8f0;margin:0;padding:22px}
+.wrap{max-width:1300px;margin:0 auto}
+
+/* HEADER */
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:14px}
+.header-title h1{font-size:23px;margin:0 0 4px;font-weight:800;letter-spacing:-.02em;color:#fff;display:flex;align-items:center;gap:10px}
+.mut{color:#8b9bb4;font-size:13px}
+
+/* OBS CARD */
+.obs-card{background:#141b27;border:1px solid #232d3f;border-radius:10px;padding:12px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.obs-info{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.obs-label{font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}
+code{background:#0b0f17;color:#53fc18;padding:6px 12px;border-radius:6px;border:1px solid #1f2a3a;font-family:Consolas,monospace;font-size:13px}
+
+/* TABS */
+.tabs-nav{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid #232d3f;padding-bottom:12px;flex-wrap:wrap}
+.tab-btn{background:#141b27;color:#94a3b8;border:1px solid #243042;padding:10px 20px;border-radius:8px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:14px;transition:all .15s}
+.tab-btn:hover{background:#1c2536;color:#fff}
+.tab-btn.on{background:#233047;color:#fff;border-color:#54dbed;box-shadow:0 0 14px rgba(84,219,237,0.2)}
+.tab-btn.kick-tab.on{background:#0d2616;color:#53fc18;border-color:#53fc18;box-shadow:0 0 14px rgba(83,252,24,0.25)}
+.tab-btn.yt-tab.on{background:#300d11;color:#ff4d4d;border-color:#ff4d4d;box-shadow:0 0 14px rgba(255,77,77,0.25)}
+.tab-btn.tw-tab.on{background:#201138;color:#c084fc;border-color:#a855f7;box-shadow:0 0 14px rgba(168,85,247,0.25)}
+.tab-btn.tt-tab.on{background:#112030;color:#38bdf8;border-color:#0284c7;box-shadow:0 0 14px rgba(56,189,248,0.25)}
+
+/* BOTONES GENERALES */
+.btn{background:#2563eb;color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.btn:hover{filter:brightness(1.15)}
+.btn.secondary{background:#1a2332;color:#cbd5e1;border:1px solid #2c394c}
+.btn.secondary:hover{background:#243247;color:#fff}
+.btn.kick{background:#103e1e;color:#53fc18;border:1px solid #53fc18;font-weight:700}
+.btn.kick:hover{background:#17582b;color:#fff}
+.btn.youtube{background:#450a0a;color:#ff6b6b;border:1px solid #ef4444;font-weight:700}
+.btn.youtube:hover{background:#7f1d1d;color:#fff}
+.btn.twitch{background:#2e1065;color:#c084fc;border:1px solid #a855f7;font-weight:700}
+.btn.twitch:hover{background:#4c1d95;color:#fff}
+.btn.danger{background:#3b1418;color:#ff6b6b;border:1px solid #7f1d1d}
+.btn.danger:hover{background:#5a1d22;color:#fff}
+.btn.icon-only{padding:5px 8px;font-size:13px;border-radius:6px}
+
+/* SECCIONES Y ENCABEZADOS DE TABLA */
+.section-header{display:flex;justify-content:space-between;align-items:center;margin:18px 0 10px;gap:12px;flex-wrap:wrap}
+.section-title{font-size:15px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px}
+
+/* TABLA */
+.table-container{background:#141b27;border:1px solid #222c3d;border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.3);margin-bottom:24px}
+table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}
+thead{background:#0e131d;border-bottom:1px solid #222c3d}
+th{padding:11px 14px;font-weight:700;color:#8b9bb4;text-transform:uppercase;font-size:11px;letter-spacing:.05em}
+td{padding:12px 14px;border-bottom:1px solid #1a2230;vertical-align:middle}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:#192231}
+tbody tr:last-child td{border-bottom:none}
+
+/* ACCIONES EN TABLA */
+.col-actions{display:flex;align-items:center;gap:5px}
+.btn-action{background:#192231;border:1px solid #293649;color:#94a3b8;width:30px;height:30px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;font-size:13px}
+.btn-action:hover{background:#29374d;color:#fff;border-color:#475b7a}
+.btn-action.play:hover{background:#0d3d20;color:#53fc18;border-color:#53fc18}
+.btn-action.edit:hover{background:#1e3a8a;color:#60a5fa;border-color:#3b82f6}
+.btn-action.copy:hover{background:#2a2b45;color:#c084fc;border-color:#9333ea}
+.btn-action.delete:hover{background:#3d1419;color:#ff6b6b;border-color:#ef4444}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge.on{background:#0e331b;color:#53fc18;border:1px solid #1b6334}
+.badge.off{background:#202838;color:#94a3b8;border:1px solid #2f3b50}
+.badge.muted{background:#3b1418;color:#fca5a5;border:1px solid #7f1d1d}
+.badge.card-on{background:#122b3d;color:#38bdf8;border:1px solid #0369a1}
+.badge.solo-meme{background:#261836;color:#d8b4fe;border:1px solid #7e22ce}
+.badge.video{background:#1f2838;color:#fbbf24;border:1px solid #92400e}
+.badge.trigger{background:#122b1d;color:#4ade80;border:1px solid #15803d;font-family:Consolas,monospace}
+.badge.trigger-yt{background:#2a1114;color:#f87171;border:1px solid #991b1b;font-family:Consolas,monospace}
+
+/* SWITCH TOGGLE */
+.switch{position:relative;display:inline-block;width:38px;height:22px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#243042;transition:.2s;border-radius:22px}
+.slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:#fff;transition:.2s;border-radius:50%}
+input:checked + .slider{background-color:#10b981}
+input:checked + .slider:before{transform:translateX(16px)}
+
+/* MODAL DE EDICIÓN */
+.modal-backdrop{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,8,14,0.85);backdrop-filter:blur(5px);z-index:999;display:none;align-items:center;justify-content:center;padding:16px}
+.modal{background:#141b27;border:1px solid #253347;border-radius:12px;width:min(780px,96vw);max-height:92vh;overflow-y:auto;box-shadow:0 14px 45px rgba(0,0,0,0.75);display:flex;flex-direction:column}
+.modal-header{padding:16px 20px;border-bottom:1px solid #212c3e;display:flex;justify-content:space-between;align-items:center;background:#0e131d}
+.modal-title{font-size:16px;font-weight:800;color:#fff;display:flex;align-items:center;gap:10px}
+.modal-close{background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;padding:0;line-height:1}
+.modal-close:hover{color:#fff}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:16px}
+.modal-footer{padding:14px 20px;border-top:1px solid #212c3e;display:flex;justify-content:space-between;align-items:center;background:#0e131d}
+
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em}
+.form-group input:not([type=checkbox]):not([type=color]),.form-group select,.form-group textarea{background:#0b0f17;color:#fff;border:1px solid #233044;border-radius:6px;padding:9px 12px;font:inherit}
+.form-group input:focus,.form-group select:focus{border-color:#38bdf8;outline:none}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+.panel-box{background:#0e141f;border:1px solid #1c2637;border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.panel-box.highlight{border-color:#334d75;background:#101726}
+.panel-box-title{font-size:12px;font-weight:800;color:#cbd5e1;display:flex;align-items:center;gap:8px}
+
+.callout-info{background:#0c1e13;border:1px solid #1b532d;color:#86efac;padding:10px 14px;border-radius:6px;font-size:12px;line-height:1.4}
+.callout-purple{background:#1f1338;border:1px solid #4c1d95;color:#d8b4fe;padding:10px 14px;border-radius:6px;font-size:12px;line-height:1.4}
+.clip-chip{display:flex;align-items:center;justify-content:space-between;background:#151d2b;border:1px solid #243144;border-radius:6px;padding:6px 10px;font-size:12px}
+.btn-mute-toggle{background:#192231;border:1px solid #2e3e56;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:#94a3b8;transition:all .15s}
+.btn-mute-toggle:hover{background:#2a3a52;color:#fff}
+.btn-mute-toggle.is-muted{background:#3b1418;border-color:#991b1b;color:#fca5a5}
+</style></head><body><main class="wrap">
+
+<!-- CABECERA -->
+<header class="header">
+  <div class="header-title">
+    <h1><span>🎛️</span> Panel de Acciones y Alertas MultiStream</h1>
+    <div class="mut">Configura alertas, memes y clips para Kick, YouTube y Twitch con silenciador de video y efectos de sonido independientes.</div>
+  </div>
+</header>
+
+<!-- BARRA DE OBS -->
+<div class="obs-card">
+  <div class="obs-info">
+    <span class="obs-label">OBS Browser Source:</span>
+    <code id="url"></code>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <button type="button" class="btn secondary" id="copiar">📋 Copiar enlace</button>
+    <button type="button" class="btn secondary" id="abrir">👁️ Vista previa</button>
+    <button type="button" class="btn secondary" id="btn_recargar_obs" title="Genera nueva versión limpia para evitar caché">🔄 Limpiar caché OBS</button>
+    <span id="estado" style="color:#53fc18;font-size:12px;font-weight:bold;"></span>
+  </div>
+</div>
+
+<!-- NAVEGACIÓN POR PESTAÑAS (KICK / YOUTUBE / TWITCH / TIKTOK) -->
+<div class="tabs-nav">
+  <button type="button" class="tab-btn kick-tab on" id="btn_tab_kick">
+    <span>🟢</span> <span>Alertas Kick.com</span>
+  </button>
+  <button type="button" class="tab-btn yt-tab" id="btn_tab_youtube">
+    <span>🔴</span> <span>Alertas YouTube Live</span>
+  </button>
+  <button type="button" class="tab-btn tw-tab" id="btn_tab_twitch">
+    <span>🟣</span> <span>Alertas Twitch</span>
+  </button>
+  <button type="button" class="tab-btn tt-tab" id="btn_tab_tiktok">
+    <span>🎵</span> <span>Alertas de TikTok LIVE</span>
+  </button>
+</div>
+
+<!-- ============================================================== -->
+<!-- 1. VISTA KICK.COM                                              -->
+<!-- ============================================================== -->
+<div id="seccion_kick">
+  <div class="section-header">
+    <div class="section-title">
+      <span>🎁</span> <span>Memes y Canjes de Puntos de Kick (Configurados por Separado)</span>
+    </div>
+    <button type="button" class="btn kick" id="btn_crear_alerta_kick">
+      <span>➕</span> <span>Crear Alerta de Meme / Canje Kick</span>
+    </button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:125px;">Acciones</th>
+          <th style="width:65px;">Activa</th>
+          <th>Nombre del Meme</th>
+          <th>Trigger / Canje Kick</th>
+          <th>Modo Pantalla</th>
+          <th>Duración</th>
+          <th>Video / Clip</th>
+          <th>Sonido & Silenciador</th>
+          <th>Descripción</th>
+        </tr>
+      </thead>
+      <tbody id="tbody_kick_memes"></tbody>
+    </table>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">
+      <span>⚙️</span> <span>Eventos Estándar de Kick (Followers y Suscripciones)</span>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:90px;">Acciones</th>
+          <th style="width:65px;">Activa</th>
+          <th>Evento de Kick</th>
+          <th>Modo Pantalla</th>
+          <th>Duración</th>
+          <th>Video / Clip</th>
+          <th>Sonido & Silenciador</th>
+          <th>Título / Mensaje</th>
+        </tr>
+      </thead>
+      <tbody id="tbody_kick_base"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- 2. VISTA YOUTUBE LIVE                                          -->
+<!-- ============================================================== -->
+<div id="seccion_youtube" hidden>
+  <div class="section-header">
+    <div class="section-title">
+      <span>🔴</span> <span>Memes y Triggers de Super Chat / YouTube</span>
+    </div>
+    <button type="button" class="btn youtube" id="btn_crear_alerta_youtube">
+      <span>➕</span> <span>Crear Alerta de Meme / Super Chat</span>
+    </button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:125px;">Acciones</th>
+          <th style="width:65px;">Activa</th>
+          <th>Nombre de Alerta</th>
+          <th>Trigger / Monto SuperChat</th>
+          <th>Modo Pantalla</th>
+          <th>Duración</th>
+          <th>Video / Clip</th>
+          <th>Sonido & Silenciador</th>
+          <th>Descripción</th>
+        </tr>
+      </thead>
+      <tbody id="tbody_youtube_memes"></tbody>
+    </table>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">
+      <span>⚙️</span> <span>Eventos Estándar de YouTube Live (Super Chat & Miembros)</span>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:90px;">Acciones</th>
+          <th style="width:65px;">Activa</th>
+          <th>Evento YouTube</th>
+          <th>Modo Pantalla</th>
+          <th>Duración</th>
+          <th>Video / Clip</th>
+          <th>Sonido & Silenciador</th>
+          <th>Título / Mensaje</th>
+        </tr>
+      </thead>
+      <tbody id="tbody_youtube_base"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- 3. VISTA TWITCH                                                -->
+<!-- ============================================================== -->
+<div id="seccion_twitch" hidden>
+  <div class="callout-purple" style="margin-bottom:16px;">
+    <b>💡 Nota de Twitch:</b> Twitch ya incluye su propia caja de alertas nativa en OBS. Esta sección te permite activar memes, clips o efectos visuales personalizados en este overlay si prefieres que salgan con tu propio estilo o silenciados.
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">
+      <span>🟣</span> <span>Memes Personalizados para Twitch</span>
+    </div>
+    <button type="button" class="btn twitch" id="btn_crear_alerta_twitch">
+      <span>➕</span> <span>Crear Alerta de Meme (Twitch)</span>
+    </button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:125px;">Acciones</th>
+          <th style="width:65px;">Activa</th>
+          <th>Nombre de Alerta</th>
+          <th>Trigger / Palabra Clave</th>
+          <th>Modo Pantalla</th>
+          <th>Duración</th>
+          <th>Video / Clip</th>
+          <th>Sonido & Silenciador</th>
+          <th>Descripción</th>
+        </tr>
+      </thead>
+      <tbody id="tbody_twitch_memes"></tbody>
+    </table>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">
+      <span>⚙️</span> <span>Eventos Estándar de Twitch (Followers y Suscripciones)</span>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:90px;">Acciones</th>
+          <th style="width:65px;">Activa</th>
+          <th>Evento Twitch</th>
+          <th>Modo Pantalla</th>
+          <th>Duración</th>
+          <th>Video / Clip</th>
+          <th>Sonido & Silenciador</th>
+          <th>Título / Mensaje</th>
+        </tr>
+      </thead>
+      <tbody id="tbody_twitch_base"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- 4. VISTA TIKTOK LIVE                                         -->
+<!-- ============================================================== -->
+<div id="seccion_tiktok" hidden>
+  <div class="section-header">
+    <div class="section-title">
+      <span>🎵</span> <span>Alertas de Regalos & Memes de TikTok LIVE</span>
+    </div>
+    <button type="button" class="btn" id="btn_crear_alerta_tiktok" style="background:#0284c7;">
+      <span>➕</span> <span>Crear Alerta de Regalo (TikTok)</span>
+    </button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:125px;">Acciones</th>
+          <th style="width:65px;">Activa</th>
+          <th>Nombre de Alerta</th>
+          <th>Regalo / Trigger</th>
+          <th>Modo Pantalla</th>
+          <th>Duración</th>
+          <th>Video</th>
+          <th>Sonido & Silenciador</th>
+          <th>Descripción</th>
+        </tr>
+      </thead>
+      <tbody id="tbody_tiktok_pers"></tbody>
+    </table>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">
+      <span>⚙️</span> <span>Eventos Estándar de TikTok LIVE</span>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:90px;">Acciones</th>
+          <th style="width:65px;">Activa</th>
+          <th>Evento</th>
+          <th>Modo Pantalla</th>
+          <th>Duración</th>
+          <th>Video</th>
+          <th>Sonido & Silenciador</th>
+          <th>Descripción</th>
+        </tr>
+      </thead>
+      <tbody id="tbody_tiktok_base"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- MODAL DE EDICIÓN                                               -->
+<!-- ============================================================== -->
+<div class="modal-backdrop" id="modal_editor">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="m_titulo_modal">✏️ Configurar Alerta</div>
+      <button type="button" class="modal-close" id="m_cerrar">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- BLOQUE 0: IDENTIFICACIÓN -->
+      <div class="panel-box" id="m_box_datos">
+        <div class="panel-box-title">🏷️ Identificación del Meme / Alerta</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre de la alerta</label>
+            <input type="text" id="m_nombre" placeholder="Ej: Vegetto Meme, Reto Mr Satan" maxlength="60">
+          </div>
+          <div class="form-group" id="m_wrap_trigger">
+            <label id="m_trigger_label">Palabra clave / Trigger</label>
+            <input type="text" id="m_trigger" placeholder="Ej: vegetto, $5, o vacío para cualquiera" maxlength="60">
+            <span class="mut" style="font-size:11px;" id="m_trigger_desc">Coincidencia con el canje o texto recibido.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BLOQUE 1: DURACIÓN INDIVIDUAL -->
+      <div class="panel-box">
+        <div class="panel-box-title">⏱️ Duración & Temporización</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Modo de duración</label>
+            <select id="m_duracion_modo">
+              <option value="manual">⏱️ Tiempo fijo en segundos (Elegir duración exacta)</option>
+              <option value="video">🎬 Al terminar el clip de video (espera a que finalice)</option>
+            </select>
+          </div>
+          <div class="form-group" id="m_wrap_seg">
+            <label>Duración en pantalla (Segundos)</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="number" id="m_seg" min="1" max="60" value="6" style="width:90px;font-weight:700;font-size:15px;color:#53fc18;">
+              <span class="mut">segundos</span>
+              <div style="display:flex;gap:4px;margin-left:auto;">
+                <button type="button" class="btn secondary icon-only" onclick="$('m_seg').value=5">5s</button>
+                <button type="button" class="btn secondary icon-only" onclick="$('m_seg').value=6">6s</button>
+                <button type="button" class="btn secondary icon-only" onclick="$('m_seg').value=10">10s</button>
+                <button type="button" class="btn secondary icon-only" onclick="$('m_seg').value=15">15s</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group" id="m_wrap_min_diamantes" style="display:none;">
+          <label>Diamantes mínimos (TikTok)</label>
+          <input type="number" id="m_min_diamantes" min="0" max="1000000000">
+        </div>
+      </div>
+
+      <!-- BLOQUE 2: MODO TARJETA VS SOLO MEME -->
+      <div class="panel-box">
+        <div class="panel-box-title">🎨 Pantalla & Diseño</div>
+        
+        <label style="display:flex;align-items:center;gap:12px;cursor:pointer;background:#090d14;padding:12px 14px;border-radius:6px;border:1px solid #1f2a3c;">
+          <input type="checkbox" id="m_mostrar_tarjeta" style="width:20px;height:20px;accent-color:#10b981;">
+          <div>
+            <b style="color:#fff;display:block;font-size:14px;">Mostrar tarjeta gráfica con marco y textos</b>
+            <span style="font-size:12px;color:#94a3b8;">Si lo desmarcas, entra en <b>Modo Solo Video / Meme</b> (la pantalla queda limpia sin marcos, solo el meme centrado y la pastilla de quién donó o canjeó).</span>
+          </div>
+        </label>
+
+        <div id="m_wrap_textos" style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+          <div class="form-group">
+            <label>Título en pantalla</label>
+            <input type="text" id="m_titulo" maxlength="60">
+          </div>
+          <div class="form-group">
+            <label>Mensaje / Plantilla</label>
+            <input type="text" id="m_texto" maxlength="180">
+            <span class="mut" style="font-size:11px;" id="m_variables_help">Variables: {usuario}, {regalo}</span>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Color de acento</label>
+              <input type="color" id="m_color" style="width:60px;height:36px;padding:2px;cursor:pointer;">
+            </div>
+            <div class="form-group">
+              <label>Efecto de animación</label>
+              <select id="m_efecto">
+                <option value="energia">Energía</option>
+                <option value="follower">Follower (Pop elástico)</option>
+                <option value="pixel">Pixel</option>
+                <option value="ninguno">Sin efecto</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BLOQUE 3: VIDEO / CLIP DEL MEME -->
+      <div class="panel-box">
+        <div class="panel-box-title">🎬 Video / Clip Asignado</div>
+        <div class="form-group">
+          <label>Seleccionar clip de video:</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select id="m_select_video" style="flex:1;">
+              <option value="">-- Sin video --</option>
+            </select>
+            <button type="button" class="btn secondary" id="m_btn_ver_video">▶ Ver clip</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#090d14;padding:10px;border-radius:6px;border:1px solid #1f2a3c;">
+          <span style="font-size:12px;font-weight:700;color:#94a3b8;">O subir un nuevo video MP4/WebM:</span>
+          <input type="file" id="m_video_file" accept="video/mp4,video/webm" style="flex:1;min-width:180px;">
+          <button type="button" class="btn secondary" id="m_btn_subir_nuevo_video">➕ Subir y asignar</button>
+        </div>
+        <span id="m_video_status" style="font-size:12px;color:#8fa2c2;"></span>
+      </div>
+
+      <!-- BLOQUE 4: SONIDO, SILENCIADOR & EFECTO SFX -->
+      <div class="panel-box highlight">
+        <div class="panel-box-title">🔊 Audio, Silenciador & Efectos de Sonido (SFX)</div>
+        
+        <label style="display:flex;align-items:center;gap:12px;cursor:pointer;background:#0b111c;padding:12px 14px;border-radius:6px;border:1px solid #23344d;">
+          <input type="checkbox" id="m_silenciar_video" style="width:20px;height:20px;accent-color:#ef4444;">
+          <div>
+            <b style="color:#fca5a5;font-size:13px;">🔇 Silenciar audio del video (Modo Silencioso / Anti-Copyright)</b>
+            <span style="display:block;font-size:11px;color:#94a3b8;margin-top:2px;">
+              Si lo marcas, el video se reproducirá totalmente en silencio (o solo con el SFX alternativo que elijas abajo).
+            </span>
+          </div>
+        </label>
+
+        <div class="form-group" style="margin-top:6px;">
+          <label>Efecto de Sonido Alternativo (SFX):</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select id="m_select_sonido" style="flex:1;">
+              <option value="">-- Sin audio alternativo (si está silenciado, será mudo) --</option>
+            </select>
+            <button type="button" class="btn secondary" id="m_btn_oir_sonido">▶ Escuchar SFX</button>
+            <button type="button" class="btn secondary" id="m_btn_quitar_sonido" title="Quitar audio alternativo">✕ Quitar</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#090d14;padding:10px;border-radius:6px;border:1px solid #1f2a3c;">
+          <span style="font-size:12px;font-weight:700;color:#94a3b8;">Subir nuevo archivo de audio (MP3/WAV/OGG):</span>
+          <input type="file" id="m_sonido_file" accept="audio/mp3,audio/wav,audio/ogg" style="flex:1;min-width:180px;">
+          <button type="button" class="btn secondary" id="m_btn_subir_nuevo_audio">Subir audio</button>
+        </div>
+        <span id="m_sonido_status" style="font-size:12px;color:#8fa2c2;"></span>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn secondary" id="m_btn_probar">▶ Probar esta alerta en OBS</button>
+      <div style="display:flex;gap:10px;">
+        <button type="button" class="btn secondary" id="m_btn_cancelar">Cancelar</button>
+        <button type="button" class="btn kick" id="m_btn_guardar">💾 Guardar Alerta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+<script>
+const $=id=>document.getElementById(id);
+
+// PESTAÑAS
+const TABS = ["kick", "youtube", "twitch", "tiktok"];
+function setTab(tab){
+  TABS.forEach(t=>{
+    const btn = $("btn_tab_" + t);
+    const sec = $("seccion_" + t);
+    if(btn) btn.className = "tab-btn " + (t==="kick"?"kick-tab ":t==="youtube"?"yt-tab ":t==="twitch"?"tw-tab ":"tt-tab ") + (t===tab?"on":"");
+    if(sec) sec.hidden = (t !== tab);
+  });
+}
+$("btn_tab_kick").onclick = ()=>setTab("kick");
+$("btn_tab_youtube").onclick = ()=>setTab("youtube");
+$("btn_tab_twitch").onclick = ()=>setTab("twitch");
+$("btn_tab_tiktok").onclick = ()=>setTab("tiktok");
+
+// METADATOS DE EVENTOS BASE
+const ALERTAS_BASE = {
+  // KICK BASE
+  kick_follow: {
+    nombre: "Kick Follow (Nuevos Seguidores)",
+    icono: "🟢",
+    plataforma: "kick",
+    variables: "Variable: {usuario}"
+  },
+  kick_sub: {
+    nombre: "Kick Subs (Suscripciones / Donaciones)",
+    icono: "⭐",
+    plataforma: "kick",
+    variables: "Variables: {usuario}, {cantidad}"
+  },
+  // YOUTUBE BASE
+  youtube_superchat: {
+    nombre: "YouTube Super Chat & Super Sticker",
+    icono: "🔴",
+    plataforma: "youtube",
+    variables: "Variables: {usuario}, {regalo}"
+  },
+  youtube_miembro: {
+    nombre: "YouTube Miembros (Nuevas Suscripciones)",
+    icono: "🟢",
+    plataforma: "youtube",
+    variables: "Variable: {usuario}"
+  },
+  // TWITCH BASE
+  twitch_follow: {
+    nombre: "Twitch Follow (Nuevos Seguidores)",
+    icono: "🟣",
+    plataforma: "twitch",
+    variables: "Variable: {usuario}"
+  },
+  twitch_sub: {
+    nombre: "Twitch Subs (Suscripciones & Regalos)",
+    icono: "⭐",
+    plataforma: "twitch",
+    variables: "Variables: {usuario}, {cantidad}"
+  },
+  // TIKTOK BASE
+  follow: {
+    nombre: "Nuevos Seguidores (TikTok)",
+    icono: "💖",
+    plataforma: "tiktok",
+    variables: "Variable: {usuario}"
+  },
+  compartir: {
+    nombre: "Compartir Directo (TikTok)",
+    icono: "🔄",
+    plataforma: "tiktok",
+    variables: "Variable: {usuario}"
+  },
+  regalo: {
+    nombre: "Regalos General (TikTok)",
+    icono: "🎁",
+    plataforma: "tiktok",
+    variables: "Variables: {usuario}, {regalo}, {cantidad}, {diamantes}"
+  }
+};
+
+let cfgActual = {};
+let archivosDisponibles = { videos: [], sonidos: [] };
+let edicionModo = "base"; // "base" o "custom"
+let customIdEnEdicion = null;
+let baseTipoEnEdicion = null;
+let plataformaEnCreacion = "kick";
+
+async function api(url, body){
+  const r = await fetch(url, {
+    method: body ? "POST" : "GET",
+    headers: {"Content-Type": "application/json"},
+    body: body && JSON.stringify(body),
+    cache: "no-store"
+  });
+  return r.json();
+}
+
+async function cargarArchivos(){
+  try{
+    const d = await api("/api/alertas/archivos");
+    if(d.ok){
+      archivosDisponibles = { videos: d.videos || [], sonidos: d.sonidos || [] };
+    }
+  }catch(e){}
+}
+
+async function cargar(){
+  try{
+    await cargarArchivos();
+    const d = await api("/api/alertas");
+    cfgActual = d.cfg || {};
+    if(!Array.isArray(cfgActual.alertas_personalizadas)){
+      cfgActual.alertas_personalizadas = [];
+    }
+    renderizarTodo();
+  }catch(e){
+    alert("Error al cargar la configuración de alertas.");
+  }
+}
+
+function renderizarTodo(){
+  renderizarKick();
+  renderizarYouTube();
+  renderizarTwitch();
+  renderizarTikTok();
+}
+
+// GENERADOR DE FILA PERSONALIZADA
+function crearFilaCustom(p, platColor){
+  const tr = document.createElement("tr");
+
+  const modoPantalla = p.mostrar_tarjeta
+    ? `<span class="badge card-on">🟩 Tarjeta Gráfica</span>`
+    : `<span class="badge solo-meme">🎬 Solo Meme (Limpio)</span>`;
+
+  const duracionBadge = p.duracion_modo === "video"
+    ? `<span class="badge video">🎬 Al acabar clip</span>`
+    : `<span class="badge on">⏱️ <b>${p.segundos || 6}s</b></span>`;
+
+  const videoDisplay = p.video
+    ? `<span class="clip-chip" style="display:inline-flex;padding:3px 8px;gap:6px;">
+         <span style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🎬 ${p.video.replace(/^[^_]+_/, "")}</span>
+         <button type="button" class="btn secondary icon-only" onclick="window.open('/alertas/archivo/${p.video}','_blank','width=520,height=340')">▶</button>
+       </span>`
+    : `<span class="badge off">Sin video</span>`;
+
+  const esMuted = Boolean(p.silenciar_video);
+  const sonidoInfo = esMuted
+    ? (p.sonido ? `<span class="badge muted">🔇 Video Mute · 🔊 SFX</span>` : `<span class="badge muted">🔇 Silenciada</span>`)
+    : (p.sonido ? `<span class="badge on">🔊 Video + SFX</span>` : `<span class="badge on">🔊 Audio Video</span>`);
+
+  const botonMuteRapido = `<button type="button" class="btn-mute-toggle ${esMuted ? 'is-muted' : ''}" title="${esMuted ? 'Clic para activar audio del video' : 'Clic para silenciar audio del video'}" onclick="toggleMuteCustom('${p.id}')">${esMuted ? '🔇 Desmutear' : '🔊 Silenciar'}</button>`;
+
+  const triggerBadge = p.trigger
+    ? `<span class="badge ${p.plataforma==='youtube'?'trigger-yt':'trigger'}">${p.trigger}</span>`
+    : `<span class="badge off" style="font-size:10px;">Cualquiera</span>`;
+
+  tr.innerHTML = `
+    <td>
+      <div class="col-actions">
+        <button type="button" class="btn-action play" title="Probar en OBS" onclick="probarCustom('${p.id}')">▶</button>
+        <button type="button" class="btn-action edit" title="Editar duracion, audio y video" onclick="abrirEditorCustom('${p.id}')">✏️</button>
+        <button type="button" class="btn-action copy" title="Duplicar alerta" onclick="duplicarCustom('${p.id}')">📋</button>
+        <button type="button" class="btn-action delete" title="Eliminar alerta" onclick="eliminarCustom('${p.id}')">🗑️</button>
+      </div>
+    </td>
+    <td>
+      <label class="switch">
+        <input type="checkbox" ${p.activa !== false ? "checked" : ""} onchange="toggleActivaCustom('${p.id}', this.checked)">
+        <span class="slider"></span>
+      </label>
+    </td>
+    <td><b style="color:#fff;">${p.nombre || "Meme"}</b></td>
+    <td>${triggerBadge}</td>
+    <td>${modoPantalla}</td>
+    <td>${duracionBadge}</td>
+    <td>${videoDisplay}</td>
+    <td>
+      <div style="display:flex;align-items:center;gap:6px;">
+        ${sonidoInfo}
+        ${botonMuteRapido}
+      </div>
+    </td>
+    <td style="color:#94a3b8;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+      <span style="font-weight:600;color:#cbd5e1;">${p.titulo || ""}</span> · ${p.texto || ""}
+    </td>
+  `;
+  return tr;
+}
+
+// GENERADOR DE FILA BASE
+function crearFilaBase(tipo){
+  const item = cfgActual[tipo] || {};
+  const meta = ALERTAS_BASE[tipo] || { nombre: tipo, icono: "⚙️" };
+  const tr = document.createElement("tr");
+
+  const modoPantalla = item.mostrar_tarjeta !== false
+    ? `<span class="badge card-on">🟩 Tarjeta Gráfica</span>`
+    : `<span class="badge solo-meme">🎬 Solo Meme</span>`;
+
+  const duracionBadge = item.duracion_modo === "video"
+    ? `<span class="badge video">🎬 Al acabar clip</span>`
+    : `<span class="badge off">⏱️ ${item.segundos || 5}s</span>`;
+
+  const videoBadge = item.video
+    ? `<span class="badge video">🎬 ${item.video.replace(/^[^_]+_/, "").slice(0, 16)}</span>`
+    : `<span class="badge off">Sin video</span>`;
+
+  const esMuted = Boolean(item.silenciar_video);
+  const sonidoInfo = esMuted
+    ? (item.sonido ? `<span class="badge muted">🔇 Video Mute · 🔊 SFX</span>` : `<span class="badge muted">🔇 Silenciada</span>`)
+    : (item.sonido ? `<span class="badge on">🔊 Video + SFX</span>` : `<span class="badge on">🔊 Audio Video</span>`);
+
+  const botonMuteRapido = `<button type="button" class="btn-mute-toggle ${esMuted ? 'is-muted' : ''}" title="${esMuted ? 'Clic para activar audio del video' : 'Clic para silenciar audio del video'}" onclick="toggleMuteBase('${tipo}')">${esMuted ? '🔇 Desmutear' : '🔊 Silenciar'}</button>`;
+
+  tr.innerHTML = `
+    <td>
+      <div class="col-actions">
+        <button type="button" class="btn-action play" title="Probar alerta" onclick="probarBase('${tipo}')">▶</button>
+        <button type="button" class="btn-action edit" title="Editar configuración" onclick="abrirEditorBase('${tipo}')">✏️</button>
+      </div>
+    </td>
+    <td>
+      <label class="switch">
+        <input type="checkbox" ${item.activa !== false ? "checked" : ""} onchange="toggleActivaBase('${tipo}', this.checked)">
+        <span class="slider"></span>
+      </label>
+    </td>
+    <td><b style="color:#fff;">${meta.icono} ${meta.nombre}</b></td>
+    <td>${modoPantalla}</td>
+    <td>${duracionBadge}</td>
+    <td>${videoBadge}</td>
+    <td>
+      <div style="display:flex;align-items:center;gap:6px;">
+        ${sonidoInfo}
+        ${botonMuteRapido}
+      </div>
+    </td>
+    <td style="color:#94a3b8;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+      <span style="font-weight:600;color:#cbd5e1;">${item.titulo || ""}</span> · ${item.texto || ""}
+    </td>
+  `;
+  return tr;
+}
+
+// 1. RENDER KICK
+function renderizarKick(){
+  const tbMemes = $("tbody_kick_memes"), tbBase = $("tbody_kick_base");
+  tbMemes.innerHTML = ""; tbBase.innerHTML = "";
+  const pers = (cfgActual.alertas_personalizadas || []).filter(p => p.plataforma === "kick" || !p.plataforma);
+  if(!pers.length){
+    tbMemes.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#64748b;padding:22px;font-style:italic;">No hay memes para Kick. Pulsa en <b>➕ Crear Alerta de Meme / Canje Kick</b> arriba para añadir tu primer clip.</td></tr>`;
+  } else {
+    pers.forEach(p => tbMemes.appendChild(crearFilaCustom(p, "kick")));
+  }
+  ["kick_follow", "kick_sub"].forEach(tipo => tbBase.appendChild(crearFilaBase(tipo)));
+}
+
+// 2. RENDER YOUTUBE
+function renderizarYouTube(){
+  const tbMemes = $("tbody_youtube_memes"), tbBase = $("tbody_youtube_base");
+  tbMemes.innerHTML = ""; tbBase.innerHTML = "";
+  const pers = (cfgActual.alertas_personalizadas || []).filter(p => p.plataforma === "youtube");
+  if(!pers.length){
+    tbMemes.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#64748b;padding:22px;font-style:italic;">No hay memes para YouTube. Pulsa en <b>➕ Crear Alerta de Meme / Super Chat</b> arriba para asignar un clip a Super Chats específicos.</td></tr>`;
+  } else {
+    pers.forEach(p => tbMemes.appendChild(crearFilaCustom(p, "youtube")));
+  }
+  ["youtube_superchat", "youtube_miembro"].forEach(tipo => tbBase.appendChild(crearFilaBase(tipo)));
+}
+
+// 3. RENDER TWITCH
+function renderizarTwitch(){
+  const tbMemes = $("tbody_twitch_memes"), tbBase = $("tbody_twitch_base");
+  tbMemes.innerHTML = ""; tbBase.innerHTML = "";
+  const pers = (cfgActual.alertas_personalizadas || []).filter(p => p.plataforma === "twitch");
+  if(!pers.length){
+    tbMemes.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#64748b;padding:22px;font-style:italic;">No hay memes para Twitch. Pulsa en <b>➕ Crear Alerta de Meme (Twitch)</b> si deseas alertas locales.</td></tr>`;
+  } else {
+    pers.forEach(p => tbMemes.appendChild(crearFilaCustom(p, "twitch")));
+  }
+  ["twitch_follow", "twitch_sub"].forEach(tipo => tbBase.appendChild(crearFilaBase(tipo)));
+}
+
+// 4. RENDER TIKTOK
+function renderizarTikTok(){
+  const tbPers = $("tbody_tiktok_pers"), tbBase = $("tbody_tiktok_base");
+  tbPers.innerHTML = ""; tbBase.innerHTML = "";
+  const pers = (cfgActual.alertas_personalizadas || []).filter(p => p.plataforma === "tiktok");
+  if(!pers.length){
+    tbPers.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#64748b;padding:22px;font-style:italic;">No hay alertas personalizadas para TikTok.</td></tr>`;
+  } else {
+    pers.forEach(p => tbPers.appendChild(crearFilaCustom(p, "tiktok")));
+  }
+  ["follow", "compartir", "regalo"].forEach(tipo => tbBase.appendChild(crearFilaBase(tipo)));
+}
+
+// CONTROL RÁPIDO ON/OFF Y MUTE DIRECTO
+async function toggleActivaCustom(id, estado){
+  const item = (cfgActual.alertas_personalizadas || []).find(p => p.id === id);
+  if(item){
+    item.activa = estado;
+    await api("/api/alertas", cfgActual);
+  }
+}
+
+async function toggleActivaBase(tipo, estado){
+  if(!cfgActual[tipo]) cfgActual[tipo] = {};
+  cfgActual[tipo].activa = estado;
+  await api("/api/alertas", cfgActual);
+}
+
+async function toggleMuteCustom(id){
+  const item = (cfgActual.alertas_personalizadas || []).find(p => p.id === id);
+  if(item){
+    item.silenciar_video = !Boolean(item.silenciar_video);
+    await api("/api/alertas", cfgActual);
+    renderizarTodo();
+  }
+}
+
+async function toggleMuteBase(tipo){
+  if(!cfgActual[tipo]) cfgActual[tipo] = {};
+  cfgActual[tipo].silenciar_video = !Boolean(cfgActual[tipo].silenciar_video);
+  await api("/api/alertas", cfgActual);
+  renderizarTodo();
+}
+
+// PRUEBAS EN VIVO A OBS
+async function probarCustom(id){
+  const item = (cfgActual.alertas_personalizadas || []).find(p => p.id === id);
+  const nombre = item ? item.nombre : "Alerta";
+  const plat = item?.plataforma || "kick";
+  const tipo = plat === "youtube" ? "youtube_superchat" : plat === "twitch" ? "twitch_sub" : "kick_recompensa";
+  const d = await api("/api/alertas/prueba", { id, tipo, plataforma: plat });
+  if(d.ok){
+    $("estado").textContent = `✓ Prueba de "${nombre}" enviada a OBS (${d.alerta?.segundos || 6}s)`;
+    setTimeout(()=>{$("estado").textContent="";}, 3000);
+  }
+}
+
+async function probarBase(tipo){
+  const d = await api("/api/alertas/prueba", { tipo });
+  if(d.ok){
+    $("estado").textContent = `✓ Prueba de ${ALERTAS_BASE[tipo]?.nombre || tipo} enviada a OBS`;
+    setTimeout(()=>{$("estado").textContent="";}, 3000);
+  }
+}
+
+// DUPLICAR Y ELIMINAR
+async function duplicarCustom(id){
+  const item = (cfgActual.alertas_personalizadas || []).find(p => p.id === id);
+  if(!item) return;
+  const copia = JSON.parse(JSON.stringify(item));
+  copia.id = "custom_" + Math.random().toString(36).substring(2, 9);
+  copia.nombre = (item.nombre || "Alerta") + " (Copia)";
+  cfgActual.alertas_personalizadas.push(copia);
+  await api("/api/alertas", cfgActual);
+  renderizarTodo();
+}
+
+async function eliminarCustom(id){
+  const item = (cfgActual.alertas_personalizadas || []).find(p => p.id === id);
+  const nombre = item ? item.nombre : "esta alerta";
+  if(!confirm(`¿Seguro que deseas eliminar "${nombre}"?`)) return;
+  cfgActual.alertas_personalizadas = (cfgActual.alertas_personalizadas || []).filter(p => p.id !== id);
+  await api("/api/alertas", cfgActual);
+  renderizarTodo();
+}
+
+// SELECTORES DE ARCHIVOS
+function actualizarSelectoresArchivos(videoActual, sonidoActual){
+  const selV = $("m_select_video");
+  selV.innerHTML = `<option value="">-- Sin video --</option>`;
+  archivosDisponibles.videos.forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = v.archivo;
+    opt.textContent = `🎬 ${v.nombre} (${v.archivo})`;
+    if(v.archivo === videoActual) opt.selected = true;
+    selV.appendChild(opt);
+  });
+
+  const selS = $("m_select_sonido");
+  selS.innerHTML = `<option value="">-- Sin audio alternativo (si está silenciado, será mudo) --</option>`;
+  archivosDisponibles.sonidos.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.archivo;
+    opt.textContent = `🔊 ${s.nombre} (${s.archivo})`;
+    if(s.archivo === sonidoActual) opt.selected = true;
+    selS.appendChild(opt);
+  });
+}
+
+// CREAR O EDITAR MODAL
+$("btn_crear_alerta_kick").onclick = ()=> abrirCrear("kick");
+$("btn_crear_alerta_youtube").onclick = ()=> abrirCrear("youtube");
+$("btn_crear_alerta_twitch").onclick = ()=> abrirCrear("twitch");
+$("btn_crear_alerta_tiktok").onclick = ()=> abrirCrear("tiktok");
+
+function abrirCrear(plataforma){
+  edicionModo = "custom";
+  customIdEnEdicion = null;
+  baseTipoEnEdicion = null;
+  plataformaEnCreacion = plataforma;
+
+  const nombresPlat = { kick: "Kick.com", youtube: "YouTube Live", twitch: "Twitch", tiktok: "TikTok LIVE" };
+  $("m_titulo_modal").innerHTML = `➕ Crear Alerta de Meme / Evento (${nombresPlat[plataforma] || plataforma})`;
+
+  $("m_box_datos").style.display = "flex";
+  $("m_nombre").value = "";
+  $("m_trigger").value = "";
+  $("m_wrap_trigger").style.display = "flex";
+
+  if(plataforma === "youtube"){
+    $("m_trigger_label").textContent = "Monto o Palabra clave de Super Chat";
+    $("m_trigger_desc").textContent = "Ej: $5, $10, vegetto, o déjalo vacío para cualquier Super Chat.";
+    $("m_titulo").value = "¡SUPER CHAT EN YOUTUBE!";
+    $("m_color").value = "#ff0000";
+  } else if(plataforma === "twitch"){
+    $("m_trigger_label").textContent = "Trigger / Palabra clave de Twitch";
+    $("m_trigger_desc").textContent = "Ej: vegetto, sub, o déjalo vacío para cualquiera.";
+    $("m_titulo").value = "¡NUEVA SUSCRIPCIÓN EN TWITCH!";
+    $("m_color").value = "#9146ff";
+  } else if(plataforma === "kick"){
+    $("m_trigger_label").textContent = "Palabra clave / Canje de Puntos Kick";
+    $("m_trigger_desc").textContent = "Si el viewer canjea este nombre en Kick, se activará este meme.";
+    $("m_titulo").value = "¡CANJE DE PUNTOS EN KICK!";
+    $("m_color").value = "#53fc18";
+  } else {
+    $("m_trigger_label").textContent = "Nombre del Regalo (TikTok)";
+    $("m_trigger_desc").textContent = "Ej: Rosa, Corazón, etc.";
+    $("m_titulo").value = "¡NUEVO REGALO!";
+    $("m_color").value = "#ffd45e";
+  }
+
+  $("m_duracion_modo").value = "manual";
+  $("m_seg").value = "6";
+  $("m_wrap_min_diamantes").style.display = "none";
+
+  $("m_mostrar_tarjeta").checked = false; // Modo Solo Meme limpio por defecto
+  $("m_texto").value = "¡{usuario} envió {regalo}!";
+  $("m_efecto").value = "energia";
+
+  $("m_silenciar_video").checked = false;
+
+  actualizarSelectoresArchivos("", "");
+  actualizarVisibilidadTextos();
+
+  $("m_video_status").textContent = "";
+  $("m_sonido_status").textContent = "";
+  $("modal_editor").style.display = "flex";
+}
+
+function abrirEditorCustom(id){
+  edicionModo = "custom";
+  customIdEnEdicion = id;
+  baseTipoEnEdicion = null;
+
+  const item = (cfgActual.alertas_personalizadas || []).find(p => p.id === id);
+  if(!item) return;
+
+  $("m_titulo_modal").innerHTML = `✏️ Editar Alerta: <b>${item.nombre || "Meme"}</b>`;
+  $("m_box_datos").style.display = "flex";
+  $("m_nombre").value = item.nombre || "";
+  $("m_trigger").value = item.trigger || "";
+  $("m_wrap_trigger").style.display = "flex";
+
+  $("m_duracion_modo").value = item.duracion_modo || "manual";
+  $("m_seg").value = item.segundos || 6;
+  $("m_wrap_min_diamantes").style.display = "none";
+
+  $("m_mostrar_tarjeta").checked = item.mostrar_tarjeta === true;
+  $("m_titulo").value = item.titulo || "¡ALERTA!";
+  $("m_texto").value = item.texto || "¡{usuario} envió {regalo}!";
+  $("m_color").value = item.color || "#53fc18";
+  $("m_efecto").value = item.efecto || "energia";
+
+  $("m_silenciar_video").checked = Boolean(item.silenciar_video);
+
+  actualizarSelectoresArchivos(item.video || "", item.sonido || "");
+  actualizarVisibilidadTextos();
+
+  $("m_video_status").textContent = "";
+  $("m_sonido_status").textContent = "";
+  $("modal_editor").style.display = "flex";
+}
+
+function abrirEditorBase(tipo){
+  edicionModo = "base";
+  customIdEnEdicion = null;
+  baseTipoEnEdicion = tipo;
+
+  const item = cfgActual[tipo] || {};
+  const meta = ALERTAS_BASE[tipo] || { nombre: tipo, icono: "⚙️", variables: "" };
+
+  $("m_titulo_modal").innerHTML = `✏️ Configurar Evento Estándar: <b>${meta.icono} ${meta.nombre}</b>`;
+  $("m_box_datos").style.display = "none";
+  $("m_wrap_trigger").style.display = "none";
+
+  $("m_duracion_modo").value = item.duracion_modo || (tipo.includes("sub") ? "video" : "manual");
+  $("m_seg").value = item.segundos || 5;
+
+  if(tipo === "regalo"){
+    $("m_wrap_min_diamantes").style.display = "flex";
+    $("m_min_diamantes").value = item.min_diamantes || 1;
+  } else {
+    $("m_wrap_min_diamantes").style.display = "none";
+  }
+
+  $("m_mostrar_tarjeta").checked = item.mostrar_tarjeta !== false;
+  $("m_titulo").value = item.titulo || "";
+  $("m_texto").value = item.texto || "";
+  $("m_color").value = item.color || (tipo.startsWith("kick_") ? "#53fc18" : tipo.startsWith("youtube_") ? "#ff0000" : tipo.startsWith("twitch_") ? "#9146ff" : "#ffd45e");
+  $("m_efecto").value = item.efecto || "energia";
+
+  $("m_silenciar_video").checked = Boolean(item.silenciar_video);
+
+  actualizarSelectoresArchivos(item.video || "", item.sonido || "");
+  actualizarVisibilidadTextos();
+
+  $("m_video_status").textContent = "";
+  $("m_sonido_status").textContent = "";
+  $("modal_editor").style.display = "flex";
+}
+
+function actualizarVisibilidadTextos(){
+  const show = $("m_mostrar_tarjeta").checked;
+  $("m_wrap_textos").style.opacity = show ? "1" : "0.35";
+}
+$("m_mostrar_tarjeta").onchange = actualizarVisibilidadTextos;
+
+function cerrarModal(){
+  $("modal_editor").style.display = "none";
+}
+$("m_cerrar").onclick = cerrarModal;
+$("m_btn_cancelar").onclick = cerrarModal;
+
+// PREVIEWS
+$("m_btn_ver_video").onclick = ()=>{
+  const v = $("m_select_video").value;
+  if(!v) return alert("Selecciona un clip de video primero.");
+  window.open("/alertas/archivo/" + v, "_blank", "width=600,height=400");
+};
+
+$("m_btn_oir_sonido").onclick = ()=>{
+  const s = $("m_select_sonido").value;
+  if(s){
+    const a = new Audio("/alertas/archivo_sonido/" + s + "?t=" + Date.now());
+    a.play().catch(e=>alert("No se pudo reproducir: " + e));
+  } else {
+    alert("No hay archivo de audio seleccionado.");
+  }
+};
+
+$("m_btn_quitar_sonido").onclick = ()=>{
+  $("m_select_sonido").value = "";
+};
+
+// SUBIDAS
+$("m_btn_subir_nuevo_video").onclick = async ()=>{
+  const fileInput = $("m_video_file");
+  const f = fileInput.files?.[0];
+  if(!f) return alert("Selecciona un archivo de video MP4 o WebM.");
+  $("m_video_status").textContent = "Subiendo video…";
+
+  const fd = new FormData();
+  fd.append("archivo", f);
+  const r = await fetch("/api/alertas/subir_clip", { method: "POST", body: fd }).then(x=>x.json()).catch(()=>({ ok:false, error:"Error al subir" }));
+  fileInput.value = "";
+
+  if(r.ok){
+    await cargarArchivos();
+    actualizarSelectoresArchivos(r.archivo, $("m_select_sonido").value);
+    $("m_video_status").textContent = `✓ ¡Video subido y seleccionado: ${r.archivo}!`;
+  } else {
+    alert(r.error || "Error al subir video.");
+    $("m_video_status").textContent = "";
+  }
+};
+
+$("m_btn_subir_nuevo_audio").onclick = async ()=>{
+  const fileInput = $("m_sonido_file");
+  const f = fileInput.files?.[0];
+  if(!f) return alert("Selecciona un archivo de audio MP3, WAV u OGG.");
+  $("m_sonido_status").textContent = "Subiendo audio…";
+
+  const fd = new FormData();
+  fd.append("archivo", f);
+  const r = await fetch("/api/alertas/subir_audio", { method: "POST", body: fd }).then(x=>x.json()).catch(()=>({ ok:false, error:"Error al subir" }));
+  fileInput.value = "";
+
+  if(r.ok){
+    await cargarArchivos();
+    actualizarSelectoresArchivos($("m_select_video").value, r.archivo);
+    $("m_sonido_status").textContent = `✓ ¡Audio subido y seleccionado: ${r.archivo}!`;
+  } else {
+    alert(r.error || "Error al subir audio.");
+    $("m_sonido_status").textContent = "";
+  }
+};
+
+// GUARDAR
+$("m_btn_guardar").onclick = async ()=>{
+  if(edicionModo === "custom"){
+    const nombre = $("m_nombre").value.trim() || "Meme";
+    const trigger = $("m_trigger").value.trim().toLowerCase();
+    const duracion_modo = $("m_duracion_modo").value;
+    const segundos = Math.max(1, Math.min(60, Number($("m_seg").value) || 6));
+    const mostrar_tarjeta = $("m_mostrar_tarjeta").checked;
+    const titulo = $("m_titulo").value.trim() || "¡ALERTA!";
+    const texto = $("m_texto").value.trim() || "¡{usuario} envió {regalo}!";
+    const color = $("m_color").value;
+    const efecto = $("m_efecto").value;
+    const video = $("m_select_video").value;
+    const silenciar_video = $("m_silenciar_video").checked;
+    const sonido = $("m_select_sonido").value;
+
+    if(!Array.isArray(cfgActual.alertas_personalizadas)){
+      cfgActual.alertas_personalizadas = [];
+    }
+
+    if(customIdEnEdicion){
+      const item = cfgActual.alertas_personalizadas.find(p => p.id === customIdEnEdicion);
+      if(item){
+        Object.assign(item, {
+          nombre, trigger, duracion_modo, segundos, mostrar_tarjeta,
+          titulo, texto, color, efecto, video, silenciar_video, sonido
+        });
+      }
+    } else {
+      const nuevoId = "custom_" + Math.random().toString(36).substring(2, 9);
+      const platTipo = plataformaEnCreacion === "kick" ? "kick_recompensa" : (plataformaEnCreacion === "youtube" ? "youtube_superchat" : (plataformaEnCreacion === "twitch" ? "twitch_sub" : "regalo"));
+      cfgActual.alertas_personalizadas.push({
+        id: nuevoId,
+        nombre,
+        trigger,
+        tipo: platTipo,
+        plataforma: plataformaEnCreacion,
+        activa: true,
+        duracion_modo,
+        segundos,
+        mostrar_tarjeta,
+        titulo,
+        texto,
+        color,
+        efecto,
+        video,
+        silenciar_video,
+        sonido
+      });
+    }
+
+    const d = await api("/api/alertas", cfgActual);
+    if(d.ok){
+      cerrarModal();
+      renderizarTodo();
+      $("estado").textContent = "✓ ¡Alerta guardada con éxito!";
+      setTimeout(()=>{$("estado").textContent="";}, 2600);
+    } else {
+      alert(d.error || "Error al guardar");
+    }
+
+  } else if(edicionModo === "base"){
+    const tipo = baseTipoEnEdicion;
+    if(!cfgActual[tipo]) cfgActual[tipo] = {};
+    const item = cfgActual[tipo];
+
+    item.duracion_modo = $("m_duracion_modo").value;
+    item.segundos = Math.max(1, Math.min(60, Number($("m_seg").value) || 5));
+    if(tipo === "regalo") item.min_diamantes = Math.max(0, Number($("m_min_diamantes").value) || 1);
+
+    item.mostrar_tarjeta = $("m_mostrar_tarjeta").checked;
+    item.titulo = $("m_titulo").value.trim() || item.titulo;
+    item.texto = $("m_texto").value.trim() || item.texto;
+    item.color = $("m_color").value;
+    item.efecto = $("m_efecto").value;
+    item.video = $("m_select_video").value;
+    item.silenciar_video = $("m_silenciar_video").checked;
+    item.sonido = $("m_select_sonido").value;
+
+    const d = await api("/api/alertas", cfgActual);
+    if(d.ok){
+      cerrarModal();
+      renderizarTodo();
+      $("estado").textContent = "✓ ¡Alerta guardada con éxito!";
+      setTimeout(()=>{$("estado").textContent="";}, 2600);
+    } else {
+      alert(d.error || "Error al guardar");
+    }
+  }
+};
+
+$("m_btn_probar").onclick = async ()=>{
+  if(customIdEnEdicion){
+    await $("m_btn_guardar").click();
+    probarCustom(customIdEnEdicion);
+  } else if(baseTipoEnEdicion){
+    await $("m_btn_guardar").click();
+    probarBase(baseTipoEnEdicion);
+  } else {
+    await $("m_btn_guardar").click();
+    const ult = cfgActual.alertas_personalizadas?.[cfgActual.alertas_personalizadas.length - 1];
+    if(ult) probarCustom(ult.id);
+  }
+};
+
+// HELPERS OBS
+$("url").textContent = location.origin + "/alertas";
+$("copiar").onclick = ()=>navigator.clipboard.writeText($("url").textContent).then(()=>{
+  $("estado").textContent = "✓ ¡URL de OBS copiada!";
+  setTimeout(()=>{$("estado").textContent="";}, 1800);
+});
+$("abrir").onclick = ()=>window.open("/alertas?preview=1", "_blank", "width=850,height=520");
+$("btn_recargar_obs").onclick = ()=>{
+  const nuevaUrl = location.origin + "/alertas?v=" + Date.now();
+  navigator.clipboard.writeText(nuevaUrl).then(()=>{
+    $("url").textContent = nuevaUrl;
+    $("estado").textContent = "✓ ¡Nueva URL limpia copiada para OBS!";
+    setTimeout(()=>{$("estado").textContent="";}, 2600);
+  });
+};
+
+cargar();
+</script></body></html>

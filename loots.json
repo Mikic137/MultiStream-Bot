@@ -1,0 +1,18 @@
+{
+  "cfg": {
+    "activa": false,
+    "id": "",
+    "fuente": "Minecraft Medium",
+    "color_titulo": "#ffbb00",
+    "color_texto": "#00eeff",
+    "color_actual": "#ff0026",
+    "tam": 28,
+    "fondo": true,
+    "max_visible": 5,
+    "mostrar_mensaje": true,
+    "mostrar_rareza": true,
+    "pos": "abajo-izq",
+    "ocultar_vacio": true
+  },
+  "items": []
+}

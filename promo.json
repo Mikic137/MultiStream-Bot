@@ -1,0 +1,39 @@
+{
+  "activa": true,
+  "segundos": 10,
+  "pausa": 15,
+  "espera": 20,
+  "fuente": "Minecraft Medium",
+  "mostrar_viewers": false,
+  "posicion": "abajo_derecha",
+  "tarjetas": [
+    {
+      "titulo": "COMANDOS DEL STREAM",
+      "lineas": [
+        "!play <cancion> - Pedir música",
+        "!reto juega <reto> - Mandar reto"
+      ],
+      "comando": "comandos",
+      "auto": true,
+      "red": "",
+      "imagen": "",
+      "imagenes": [],
+      "usuario": "",
+      "duracion": 0
+    },
+    {
+      "titulo": "SÍGUEME EN REDES",
+      "lineas": [
+        "¡Directos y contenido todas las semanas!",
+        "Sígueme para no perderte nada."
+      ],
+      "comando": "redes",
+      "auto": true,
+      "red": "kick",
+      "imagen": "",
+      "imagenes": [],
+      "usuario": "@tu_canal",
+      "duracion": 0
+    }
+  ]
+}

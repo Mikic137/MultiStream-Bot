@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <script src="/static/flujo.js"></script>
+  <title>DB Legends - Panel de Música</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      max-width: 840px;
+      margin: 20px auto;
+      padding: 0 16px 40px;
+    }
+    h1 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 28px;
+      color: #ffd45e;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+    .card-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 19px;
+      font-weight: 700;
+      color: #ffd45e;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #ahora-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #0f172a;
+      border: 1px solid rgba(255,181,45,0.3);
+      border-left: 4px solid #ffb52d;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+    #ahora {
+      font-weight: 600;
+      font-size: 16px;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    button, .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      background: #4f46e5;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, transform 0.1s;
+    }
+    button:hover, .btn:hover { background: #4338ca; transform: translateY(-1px); }
+    button:active, .btn:active { transform: translateY(0); }
+    button.btn-warn { background: #d97706; }
+    button.btn-warn:hover { background: #b45309; }
+    button.btn-danger { background: #dc2626; padding: 5px 10px; font-size: 12px; }
+    button.btn-danger:hover { background: #b91c1c; }
+    button.btn-success { background: #16a34a; padding: 5px 10px; font-size: 12px; }
+    button.btn-success:hover { background: #15803d; }
+    .vol-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-left: auto;
+    }
+    input[type=range] {
+      accent-color: #ffb52d;
+      cursor: pointer;
+    }
+    .toggles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #334155;
+    }
+    .toggle-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .toggle-card input[type=checkbox] {
+      width: 18px;
+      height: 18px;
+      accent-color: #ffb52d;
+      cursor: pointer;
+    }
+    .toggle-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .toggle-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: #f1f5f9;
+    }
+    .toggle-desc {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    form#buscar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    input#q {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    input#q:focus {
+      outline: none;
+      border-color: #ffb52d;
+    }
+    ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    li {
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 10px 14px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .song-title {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .song-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .tag-pend { background: rgba(234, 179, 8, 0.2); color: #facc15; }
+    .tag-play { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .tag-list { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .tag-desc { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+    .actions { display: flex; align-items: center; gap: 6px; }
+    .mut { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+    code { background: #0f172a; padding: 2px 6px; border-radius: 4px; color: #ffd45e; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+  <h1>🎵 Control de Música</h1>
+
+  <div class="card">
+    <div class="card-title">
+      <span>Reproducción Actual</span>
+      <button class="btn btn-warn" id="btn-show-queue" style="font-size:12px;padding:4px 10px">📜 Mostrar cola en OBS</button>
+    </div>
+
+    <div id="ahora-box">
+      <span id="ahora">Cargando estado...</span>
+      <span id="badge-skip-count" style="display:none;background:#ef444433;border:1px solid #ef4444;color:#fca5a5;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:700"></span>
+    </div>
+    <audio id="audio" hidden></audio>
+
+    <div class="btn-row">
+      <button id="pausa">⏸ Pausar</button>
+      <button id="skip" class="btn-warn">⏭ Saltar canción</button>
+      
+      <div class="vol-ctrl">
+        <span>Volumen:</span>
+        <input id="vol" type="range" min="0" max="1" step="0.05" value="0.5" style="width:110px">
+        <span id="vol-lbl">50%</span>
+      </div>
+    </div>
+
+    <div class="toggles-grid">
+      <label class="toggle-card">
+        <div class="toggle-text">
+          <span class="toggle-title">⚡ Auto-reproducir pedidos (!play)</span>
+          <span class="toggle-desc">Aprueba y descarga pedidos del chat sin esperas</span>
+        </div>
+        <input type="checkbox" id="auto-aprobar">
+      </label>
+
+      <label class="toggle-card">
+        <div class="toggle-text">
+          <span class="toggle-title">📻 Modo Radio / Continuo</span>
+          <span class="toggle-desc">Suena música guardada si la cola queda vacía</span>
+        </div>
+        <input type="checkbox" id="auto-radio">
+      </label>
+
+      <label class="toggle-card">
+        <div class="toggle-text">
+          <span class="toggle-title">🔊 Escuchar en este panel</span>
+          <span class="toggle-desc">Déjalo apagado si ya tienes el audio en OBS</span>
+        </div>
+        <input type="checkbox" id="local">
+      </label>
+    </div>
+
+    <p class="mut" style="margin-top:12px">
+      <b id="oyentes">Comprobando oyentes...</b><br>
+      Fuente de navegador para OBS: <code id="urlp"></code>
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Buscar y Agregar Canción</div>
+    <form id="buscar">
+      <input id="q" placeholder="Escribe el nombre de la canción o artista..." required>
+      <button type="submit">🔍 Buscar</button>
+    </form>
+    <ul id="res"></ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span>Cola de Canciones</span>
+      <span class="mut" id="cola-count" style="font-size:13px"></span>
+    </div>
+    <ul id="cola"></ul>
+  </div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  let sonando = null, ultimo = null, local = false;
+  try { local = localStorage.getItem("musica_local") === "1"; } catch {}
+
+  $("urlp").textContent = location.origin + "/musica/player";
+
+  function detener() {
+    if (sonando) {
+      sonando = null;
+      $("audio").pause();
+      $("audio").removeAttribute("src");
+    }
+  }
+
+  function sonarAqui(d, a) {
+    const au = $("audio");
+    au.volume = d.volumen;
+    if (!a) { detener(); return; }
+    if (a.id !== sonando) {
+      sonando = a.id;
+      au.src = "/musica/archivo/" + encodeURIComponent(a.archivo);
+      au.onloadedmetadata = () => {
+        if (d.pos > 2) au.currentTime = Math.min(d.pos, au.duration || d.pos);
+      };
+    }
+    if (d.pausado) au.pause();
+    else if (au.paused) au.play().catch(() => {});
+  }
+
+  const api = (u, m = "GET", b) => fetch(u, {
+    method: m,
+    headers: { "Content-Type": "application/json" },
+    body: b && JSON.stringify(b)
+  }).then(r => r.json());
+
+  const mm = s => s ? Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") : "?";
+
+  async function cargar() {
+    const d = await api("/api/musica/cola");
+    ultimo = d;
+
+    // Actualizar switches automáticos
+    if (d.auto) {
+      $("auto-aprobar").checked = !!d.auto.aprobar;
+      $("auto-radio").checked = !!d.auto.radio;
+    }
+
+    // Render cola
+    const ul = $("cola");
+    ul.replaceChildren();
+    $("cola-count").textContent = d.cola.length + " en total";
+
+    d.cola.forEach(x => {
+      const li = document.createElement("li");
+      const title = document.createElement("span");
+      title.className = "song-title";
+      title.textContent = `${x.titulo} (${mm(x.dur)}) · Por: ${x.por}`;
+
+      const tag = document.createElement("span");
+      tag.className = "song-tag " + (
+        x.estado === "reproduciendo" ? "tag-play" :
+        x.estado === "pendiente" ? "tag-pend" :
+        x.estado === "lista" ? "tag-list" : "tag-desc"
+      );
+      tag.textContent = x.estado.toUpperCase();
+
+      const acts = document.createElement("div");
+      acts.className = "actions";
+
+      if (x.estado === "pendiente") {
+        const bApr = document.createElement("button");
+        bApr.className = "btn-success";
+        bApr.textContent = "Aprobar";
+        bApr.onclick = () => api(`/api/musica/${x.id}/aprobar`, "POST");
+        acts.appendChild(bApr);
+      }
+
+      const v = document.createElement("a");
+      v.href = "https://www.youtube.com/watch?v=" + x.vid;
+      v.target = "_blank";
+      v.className = "btn";
+      v.style.fontSize = "12px";
+      v.style.padding = "5px 9px";
+      v.style.background = "#334155";
+      v.textContent = "Ver";
+      acts.appendChild(v);
+
+      const bDel = document.createElement("button");
+      bDel.className = "btn-danger";
+      bDel.textContent = "✕";
+      bDel.onclick = () => api("/api/musica/" + x.id, "DELETE");
+      acts.appendChild(bDel);
+
+      li.append(tag, title, acts);
+      ul.appendChild(li);
+    });
+
+    const a = d.cola.find(x => x.estado === "reproduciendo");
+    $("ahora").textContent = a ? (d.pausado ? "⏸ " : "▶ ") + a.titulo + " (Por: " + a.por + ")" : "Nada sonando actualmente";
+    $("pausa").textContent = d.pausado ? "▶ Reanudar" : "⏸ Pausar";
+
+    if (d.skip && d.skip.votos > 0) {
+      $("badge-skip-count").style.display = "inline-block";
+      $("badge-skip-count").textContent = `Votos skip: ${d.skip.votos}/${d.skip.meta}`;
+    } else {
+      $("badge-skip-count").style.display = "none";
+    }
+
+    if (document.activeElement !== $("vol")) {
+      $("vol").value = d.volumen;
+      $("vol-lbl").textContent = Math.round(d.volumen * 100) + "%";
+    }
+
+    local ? sonarAqui(d, a) : detener();
+
+    const o = d.oyentes || {};
+    $("oyentes").textContent = (o.obs || o.panel)
+      ? "🔊 Sonando en: " + [o.obs && "OBS ×" + o.obs, o.panel && "este panel ×" + o.panel].filter(Boolean).join(" · ")
+      : "🔇 Ningún reproductor conectado: abre /musica/player en OBS o activa la casilla de escuchar en este panel";
+  }
+
+  // Eventos de botones
+  $("buscar").onsubmit = async e => {
+    e.preventDefault();
+    $("res").textContent = "Buscando canciones...";
+    const r = await api("/api/musica/buscar?q=" + encodeURIComponent($("q").value));
+    const ul = $("res");
+    ul.replaceChildren();
+    (Array.isArray(r) ? r : []).forEach(x => {
+      const li = document.createElement("li");
+      const title = document.createElement("span");
+      title.className = "song-title";
+      title.textContent = `${x.titulo} (${mm(x.dur)})`;
+      const btnAdd = document.createElement("button");
+      btnAdd.className = "btn-success";
+      btnAdd.textContent = "+ Añadir a cola";
+      btnAdd.onclick = () => api("/api/musica/pedir", "POST", x);
+      li.append(title, btnAdd);
+      ul.appendChild(li);
+    });
+  };
+
+  $("skip").onclick = () => api("/api/musica/siguiente", "POST");
+  $("pausa").onclick = () => api("/api/musica/pausa", "POST", { pausado: !(ultimo && ultimo.pausado) });
+  $("btn-show-queue").onclick = () => api("/api/musica/mostrar_cola", "POST");
+
+  $("auto-aprobar").onchange = e => api("/api/musica/auto", "POST", { aprobar: e.target.checked });
+  $("auto-radio").onchange = e => api("/api/musica/auto", "POST", { radio: e.target.checked });
+
+  $("audio").onended = () => {
+    if (sonando && local) api("/api/musica/siguiente", "POST", { id: sonando });
+  };
+  $("audio").onerror = () => {
+    // Evitar que errores transitorios al cambiar src salten la canción
+  };
+
+  $("vol").oninput = e => {
+    $("vol-lbl").textContent = Math.round(e.target.value * 100) + "%";
+  };
+  $("vol").onchange = e => api("/api/musica/volumen", "POST", { v: +e.target.value });
+
+  $("local").checked = local;
+  $("local").onchange = e => {
+    local = e.target.checked;
+    try { localStorage.setItem("musica_local", local ? "1" : "0"); } catch {}
+    if (ultimo) cargar();
+  };
+
+  const cid = Math.random().toString(36).slice(2);
+  let boot = null;
+  const es = new Flujo("");
+  es.addEventListener("musica", cargar);
+  es.addEventListener("boot", e => {
+    const b = JSON.parse(e.data).id;
+    if (boot && boot !== b) location.reload();
+    boot = b;
+  });
+
+  setInterval(() => {
+    if (local) fetch("/api/musica/latido", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ c: cid, t: "panel" })
+    }).catch(() => {});
+  }, 5000);
+
+  setInterval(cargar, 3000);
+  cargar();
+</script>
+</body>
+</html>

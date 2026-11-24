@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VIPs MultiStream - Panel TikFinity</title>
+<script src="/static/flujo.js"></script>
+<link rel="stylesheet" href="/static/vip.css">
+<style>
+*{box-sizing:border-box}
+body{font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#0d111a;color:#e2e8f0;margin:0;padding:22px}
+.wrap{max-width:1280px;margin:0 auto}
+
+/* HEADER */
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:14px}
+.header-title h1{font-size:23px;margin:0 0 4px;font-weight:800;letter-spacing:-.02em;color:#fff;display:flex;align-items:center;gap:10px}
+.mut{color:#8b9bb4;font-size:13px}
+
+/* OBS CARD */
+.obs-card{background:#141b27;border:1px solid #232d3f;border-radius:10px;padding:12px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.obs-info{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.obs-label{font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}
+code{background:#0b0f17;color:#ffd45e;padding:6px 12px;border-radius:6px;border:1px solid #1f2a3a;font-family:Consolas,monospace;font-size:13px}
+
+/* TABS */
+.tabs-nav{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid #232d3f;padding-bottom:12px;flex-wrap:wrap}
+.tab-btn{background:#141b27;color:#94a3b8;border:1px solid #243042;padding:10px 20px;border-radius:8px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:14px;transition:all .15s}
+.tab-btn:hover{background:#1c2536;color:#fff}
+.tab-btn.on{background:#233047;color:#fff;border-color:#ffd45e;box-shadow:0 0 14px rgba(255,212,94,0.22)}
+
+/* BOTONES */
+.btn{background:#2563eb;color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.btn:hover{filter:brightness(1.15)}
+.btn.secondary{background:#1a2332;color:#cbd5e1;border:1px solid #2c394c}
+.btn.secondary:hover{background:#243247;color:#fff}
+.btn.vip-gold{background:#3a2908;color:#ffd45e;border:1px solid #d97706;font-weight:700}
+.btn.vip-gold:hover{background:#4d370b;color:#fff}
+.btn.danger{background:#3b1418;color:#ff6b6b;border:1px solid #7f1d1d}
+.btn.danger:hover{background:#5a1d22;color:#fff}
+.btn.icon-only{padding:5px 8px;font-size:13px;border-radius:6px}
+
+/* SECCIONES Y ENCABEZADOS DE TABLA */
+.section-header{display:flex;justify-content:space-between;align-items:center;margin:18px 0 10px;gap:12px;flex-wrap:wrap}
+.section-title{font-size:15px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px}
+
+/* TABLA ESTILO TIKFINITY */
+.table-container{background:#141b27;border:1px solid #222c3d;border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.3);margin-bottom:24px}
+table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}
+thead{background:#0e131d;border-bottom:1px solid #222c3d}
+th{padding:11px 14px;font-weight:700;color:#8b9bb4;text-transform:uppercase;font-size:11px;letter-spacing:.05em}
+td{padding:12px 14px;border-bottom:1px solid #1a2230;vertical-align:middle}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:#192231}
+tbody tr:last-child td{border-bottom:none}
+
+/* ACCIONES EN TABLA */
+.col-actions{display:flex;align-items:center;gap:5px}
+.btn-action{background:#192231;border:1px solid #293649;color:#94a3b8;width:30px;height:30px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;font-size:13px}
+.btn-action:hover{background:#29374d;color:#fff;border-color:#475b7a}
+.btn-action.play:hover{background:#0d3d20;color:#53fc18;border-color:#53fc18}
+.btn-action.chat:hover{background:#2a1b42;color:#c084fc;border-color:#9333ea}
+.btn-action.edit:hover{background:#1e3a8a;color:#60a5fa;border-color:#3b82f6}
+.btn-action.delete:hover{background:#3d1419;color:#ff6b6b;border-color:#ef4444}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge.on{background:#0e331b;color:#53fc18;border:1px solid #1b6334}
+.badge.off{background:#202838;color:#94a3b8;border:1px solid #2f3b50}
+.badge.tiktok{background:#122030;color:#38bdf8;border:1px solid #0369a1;font-family:Consolas,monospace}
+.badge.kick{background:#0c2415;color:#4ade80;border:1px solid #15803d;font-family:Consolas,monospace}
+.badge.role-vip{background:#3a2908;color:#fcd34d;border:1px solid #d97706}
+.badge.role-mod{background:#1e1b4b;color:#a5b4fc;border:1px solid #4338ca}
+.badge.role-top{background:#3b1418;color:#fca5a5;border:1px solid #b91c1c}
+
+/* SWITCH TOGGLE */
+.switch{position:relative;display:inline-block;width:38px;height:22px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#243042;transition:.2s;border-radius:22px}
+.slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:#fff;transition:.2s;border-radius:50%}
+input:checked + .slider{background-color:#10b981}
+input:checked + .slider:before{transform:translateX(16px)}
+
+/* MODAL DE EDICIÓN ESTILO TIKFINITY */
+.modal-backdrop{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,8,14,0.85);backdrop-filter:blur(5px);z-index:999;display:none;align-items:center;justify-content:center;padding:16px}
+.modal{background:#141b27;border:1px solid #253347;border-radius:12px;width:min(760px,96vw);max-height:92vh;overflow-y:auto;box-shadow:0 14px 45px rgba(0,0,0,0.75);display:flex;flex-direction:column}
+.modal-header{padding:16px 20px;border-bottom:1px solid #212c3e;display:flex;justify-content:space-between;align-items:center;background:#0e131d}
+.modal-title{font-size:16px;font-weight:800;color:#fff;display:flex;align-items:center;gap:10px}
+.modal-close{background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;padding:0;line-height:1}
+.modal-close:hover{color:#fff}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:16px}
+.modal-footer{padding:14px 20px;border-top:1px solid #212c3e;display:flex;justify-content:space-between;align-items:center;background:#0e131d}
+
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em}
+.form-group input:not([type=checkbox]):not([type=color]),.form-group select,.form-group textarea{background:#0b0f17;color:#fff;border:1px solid #233044;border-radius:6px;padding:9px 12px;font:inherit}
+.form-group input:focus,.form-group select:focus{border-color:#ffd45e;outline:none}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+.panel-box{background:#0e141f;border:1px solid #1c2637;border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.panel-box-title{font-size:12px;font-weight:800;color:#cbd5e1;display:flex;align-items:center;gap:8px}
+
+.callout-kick{background:#0a1e12;border:1px solid #16562a;border-radius:6px;padding:10px 14px;font-size:12px;color:#86efac;line-height:1.45}
+.clip-chip{display:flex;align-items:center;justify-content:space-between;background:#151d2b;border:1px solid #243144;border-radius:6px;padding:6px 10px;font-size:12px}
+
+/* PREVIEW BOX */
+#pvbox{position:relative;height:180px;border-radius:10px;overflow:hidden;background:repeating-conic-gradient(#161e2e 0 25%,#1c263a 0 50%) 50%/20px 20px;border:1px solid #243144}
+#pvbox .vb{position:absolute;display:flex}
+#pvfx{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:4}
+</style></head><body><main class="wrap">
+
+<!-- CABECERA -->
+<header class="header">
+  <div class="header-title">
+    <h1><span>👑</span> Panel de VIPs & Moderadores MultiStream</h1>
+    <div class="mut">Vincula los usuarios de TikTok y Kick a la misma persona para que compartan su video de entrada, estandarte y rango.</div>
+  </div>
+</header>
+
+<!-- BARRA DE OBS -->
+<div class="obs-card">
+  <div class="obs-info">
+    <span class="obs-label">OBS VIP Source:</span>
+    <code id="url"></code>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <button type="button" class="btn secondary" id="copiar">📋 Copiar enlace</button>
+    <button type="button" class="btn secondary" id="abrir">👁️ Vista previa</button>
+    <button type="button" class="btn secondary" id="btn_recargar_obs">🔄 Limpiar caché OBS</button>
+    <span id="estado" style="color:#ffd45e;font-size:12px;font-weight:bold;"></span>
+  </div>
+</div>
+
+<!-- NAVEGACIÓN POR PESTAÑAS -->
+<div class="tabs-nav">
+  <button type="button" class="tab-btn on" id="tab_vips">
+    <span>👑</span> <span>Lista de VIPs (MultiStream)</span>
+  </button>
+  <button type="button" class="tab-btn" id="tab_diseno">
+    <span>🎨</span> <span>Diseño & Tarjeta de Entrada</span>
+  </button>
+  <button type="button" class="tab-btn" id="tab_videos">
+    <span>🎬</span> <span>Videos VIP</span>
+  </button>
+  <button type="button" class="tab-btn" id="tab_vistos">
+    <span>👥</span> <span>Vistos Recientemente en Directo</span>
+  </button>
+</div>
+
+<!-- ============================================================== -->
+<!-- PESTAÑA 1: TABLA DE VIPS MULTISTREAM                            -->
+<!-- ============================================================== -->
+<div id="sec_vips">
+  <div class="section-header">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <input type="text" id="buscar" placeholder="🔍 Buscar por apodo, @TikTok o @Kick..." style="background:#0e141f;border:1px solid #233044;color:#fff;padding:8px 14px;border-radius:6px;width:280px;font:inherit;">
+      <span class="mut" id="cuenta">(0 VIPs)</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button type="button" class="btn secondary" id="btn_reiniciar_saludados" title="Permite que todos los VIPs vuelvan a recibir su bienvenida en el directo actual">🔄 Reiniciar saludados</button>
+      <button type="button" class="btn secondary danger" id="btn_vaciar_cola" title="Vacía las alertas VIP pendientes de reproducir en OBS">🗑️ Vaciar cola</button>
+      <button type="button" class="btn vip-gold" id="btn_crear_vip">
+        <span>➕</span> <span>Añadir VIP</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:130px;">Acciones</th>
+          <th style="width:65px;">Activo</th>
+          <th>Nombre / Apodo</th>
+          <th>Usuario TikTok</th>
+          <th>Usuario Kick</th>
+          <th>Video de Entrada</th>
+          <th>Estandarte / Chat</th>
+          <th>Mensaje Propio</th>
+        </tr>
+      </thead>
+      <tbody id="tbody_vips">
+        <!-- Generado dinámicamente -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- PESTAÑA 2: DISEÑO Y TARJETA DE ENTRADA                         -->
+<!-- ============================================================== -->
+<div id="sec_diseno" hidden>
+  <div class="section-header">
+    <div class="section-title">
+      <span>🎨</span> <span>Configuración Visual de la Tarjeta y Video</span>
+    </div>
+    <button type="button" class="btn" id="btn_guardar_general" style="background:#10b981;">💾 Guardar Ajustes</button>
+  </div>
+
+  <!-- Vista previa interactiva -->
+  <div class="panel-box" style="margin-bottom:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="panel-box-title">👁️ Vista Previa en Tiempo Real</div>
+      <button type="button" class="btn secondary icon-only" id="pvbtn">▶ Ver animación</button>
+    </div>
+    <div id="pvbox">
+      <div id="pvfx"></div>
+      <div class="vb centro" id="pvb">
+        <div class="vbi" id="pvi">
+          <div class="vbn" id="pvn">NombreVIP</div>
+          <div class="vbm" id="pvm">¡Bienvenido al directo!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario de diseño -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:24px;">
+    
+    <div class="panel-box">
+      <div class="panel-box-title">⏱️ Comportamiento y Video</div>
+      <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin-bottom:12px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="activa" style="width:18px;height:18px;accent-color:#ffd45e;">
+          <b>Sistema de VIPs activado</b>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="silenciar_video" style="width:18px;height:18px;accent-color:#ff6b6b;">
+          <b>🔇 Silenciar audio de videos de alerta (reproducir solo video)</b>
+        </label>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Volumen (0 a 100)</label>
+          <input type="number" id="volumen" min="0" max="100">
+        </div>
+        <div class="form-group">
+          <label>Tamaño video (%)</label>
+          <input type="number" id="tam" min="20" max="100">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Posición del video</label>
+          <select id="pos">
+            <option value="centro">Centro</option>
+            <option value="arriba">Arriba</option>
+            <option value="abajo">Abajo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Duración máx. (seg)</label>
+          <input type="number" id="max" min="3" max="60">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Repetir tras (minutos)</label>
+          <input type="number" id="repetir_min" min="0" max="600" title="0 = solo una vez por directo">
+        </div>
+        <div class="form-group">
+          <label>Segundos si no hay video</label>
+          <input type="number" id="seg_texto" min="2" max="30">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-box">
+      <div class="panel-box-title">✨ Tipografía & Animación</div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="mostrar_nombre" style="width:18px;height:18px;accent-color:#ffd45e;">
+        <b>Mostrar el nombre en la tarjeta</b>
+      </label>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fuente instalada</label>
+          <input id="fuente" list="fuentes" placeholder="ej. Impact">
+          <datalist id="fuentes">
+            <option>Impact</option><option>Arial Black</option><option>Bahnschrift</option>
+            <option>Segoe UI Black</option><option>Trebuchet MS</option><option>Consolas</option>
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label>Efecto de entrada</label>
+          <select id="efecto_entrada">
+            <option value="destello">Destello de energía</option>
+            <option value="rayos">Rayos cósmicos</option>
+            <option value="explosion">Explosión pixel</option>
+            <option value="ninguno">Sin efecto</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Animación de tarjeta</label>
+          <select id="animacion">
+            <option value="zoom">Zoom</option>
+            <option value="rebote">Rebote</option>
+            <option value="subir">Subir</option>
+            <option value="deslizar">Deslizar</option>
+            <option value="fade">Aparecer suave</option>
+            <option value="ninguna">Ninguna</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Posición del texto</label>
+          <select id="texto_pos">
+            <option value="abajo">Abajo</option>
+            <option value="centro">Centro</option>
+            <option value="arriba">Arriba</option>
+          </select>
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="brillo" style="width:18px;height:18px;accent-color:#ffd45e;">
+        <span>Brillo pulsante en el marco</span>
+      </label>
+    </div>
+
+    <div class="panel-box">
+      <div class="panel-box-title">🎨 Colores y Textos Globales</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Color del nombre</label>
+          <input type="color" id="color_nombre" style="width:60px;height:34px;cursor:pointer;">
+        </div>
+        <div class="form-group">
+          <label>Color del mensaje</label>
+          <input type="color" id="color_mensaje" style="width:60px;height:34px;cursor:pointer;">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Color contorno</label>
+          <input type="color" id="color_borde" style="width:60px;height:34px;cursor:pointer;">
+        </div>
+        <div class="form-group">
+          <label>Color fondo</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="checkbox" id="fondo" style="width:18px;height:18px;accent-color:#ffd45e;">
+            <input type="color" id="color_fondo" style="width:60px;height:34px;cursor:pointer;">
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tamaño fuente nombre (px)</label>
+          <input type="number" id="tam_nombre" min="20" max="150" value="64">
+        </div>
+        <div class="form-group">
+          <label>Tamaño fuente mensaje (px)</label>
+          <input type="number" id="tam_mensaje" min="12" max="100" value="32">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Mensaje global por defecto</label>
+        <input type="text" id="mensaje" placeholder="¡Bienvenido al directo!">
+        <span class="mut" style="font-size:11px;">Variables disponibles: {nombre}, {usuario}</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- PESTAÑA 3: VIDEOS VIP                                          -->
+<!-- ============================================================== -->
+<div id="sec_videos" hidden>
+  <div class="section-header">
+    <div class="section-title">
+      <span>🎬</span> <span>Biblioteca de Videos VIP (.mp4 o .webm, hasta 60 MB)</span>
+    </div>
+  </div>
+
+  <div class="panel-box" style="margin-bottom:16px;">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <input type="file" id="file" accept=".mp4,.webm,video/mp4,video/webm" style="flex:1;min-width:220px;">
+      <button type="button" class="btn vip-gold" id="subir">➕ Subir Video</button>
+      <span class="mut" id="msg"></span>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre del Archivo</th>
+          <th>Tamaño</th>
+          <th style="width:160px;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tbody_videos">
+        <!-- Lista de videos -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- PESTAÑA 4: VISTOS RECIENTEMENTE EN DIRECTO                     -->
+<!-- ============================================================== -->
+<div id="sec_vistos" hidden>
+  <div class="section-header">
+    <div class="section-title">
+      <span>👥</span> <span>Espectadores Vistos Recientemente (TikTok & Kick)</span>
+    </div>
+    <span class="mut" id="pend">Alertas en espera: 0</span>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Nombre / Apodo</th>
+          <th style="width:160px;">Acción Rápida</th>
+        </tr>
+      </thead>
+      <tbody id="tbody_recientes">
+        <!-- Vistos recientemente -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- MODAL DE EDICIÓN DE VIP (TIKFINITY)                            -->
+<!-- ============================================================== -->
+<div class="modal-backdrop" id="modal_editor">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="m_titulo_modal">👑 Configurar VIP</div>
+      <button type="button" class="modal-close" id="m_cerrar">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- IDENTIFICACIÓN MULTISTREAM -->
+      <div class="panel-box">
+        <div class="panel-box-title">👤 Identificación del Espectador MultiStream</div>
+        
+        <div class="form-group">
+          <label>Nombre / Apodo para mostrar en pantalla</label>
+          <input type="text" id="m_nombre" placeholder="Ej: NEXUS, KEVIIN, Goku" maxlength="30">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>🟢 Usuario en Kick (sin @)</label>
+            <input type="text" id="m_usuario_kick" placeholder="nexus_kick" maxlength="40">
+          </div>
+          <div class="form-group">
+            <label>🟣 Usuario en Twitch (sin @)</label>
+            <input type="text" id="m_usuario_tw" placeholder="nexus_twitch" maxlength="40">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>🔴 Usuario en YouTube</label>
+            <input type="text" id="m_usuario_yt" placeholder="nexus_yt" maxlength="50">
+          </div>
+          <div class="form-group">
+            <label>🎵 Usuario en TikTok (opcional)</label>
+            <input type="text" id="m_usuario_tt" placeholder="nexus_legends1" maxlength="40">
+          </div>
+        </div>
+
+        <div class="callout-kick">
+          💡 <b>Vinculación MultiStream:</b> Si este espectador comenta en Kick, Twitch o YouTube, pon sus usuarios aquí. El bot lo reconocerá automáticamente como la <b>misma persona</b> y disparará su mismo video de entrada, mensaje y estandarte en cualquiera de las plataformas.
+        </div>
+      </div>
+
+      <!-- VIDEO DE ENTRADA -->
+      <div class="panel-box">
+        <div class="panel-box-title">🎬 Video de Entrada Personalizado</div>
+        <div class="form-group">
+          <label>Clip de Video Asignado</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select id="m_select_video" style="flex:1;">
+              <option value="">-- Sin video (solo tarjeta de texto) --</option>
+            </select>
+            <button type="button" class="btn secondary" id="m_btn_ver_video">▶ Ver clip</button>
+          </div>
+          <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;margin-top:8px;font-size:12px;color:#cbd5e1;">
+            <input type="checkbox" id="m_silenciar_video" style="accent-color:#ff6b6b;">
+            <span>🔇 Silenciar audio del video solo para este VIP</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- RANGO Y ESTANDARTE PIXEL ART -->
+      <div class="panel-box">
+        <div class="panel-box-title">🛡️ Rango y Estandarte Pixel Art</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Rango / Rol</label>
+            <select id="m_rango">
+              <option value="vip">✦ VIP</option>
+              <option value="mod">🛡️ Moderador</option>
+              <option value="top">👑 Top Donador</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Estandarte Pixel Art (Chat)</label>
+            <select id="m_estandarte">
+              <option value="none">Sin estandarte</option>
+              <option value="corona">👑 Corona (Top)</option>
+              <option value="espada">⚔️ Espada (Mod)</option>
+              <option value="puño">🥊 Puño (Guerrero)</option>
+              <option value="escudo">🛡️ Escudo (Guardián)</option>
+              <option value="estrella">⭐ Estrella Cósmica</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="margin-top:6px;">
+          <div class="form-group">
+            <label>Color personalizado</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="checkbox" id="m_usar_color" style="width:18px;height:18px;accent-color:#ffd45e;">
+              <input type="color" id="m_color" style="width:60px;height:34px;cursor:pointer;">
+              <span class="mut" style="font-size:11px;">Usar color propio</span>
+            </div>
+          </div>
+          <div class="form-group" style="justify-content:center;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="m_banner_chat" style="width:18px;height:18px;accent-color:#ffd45e;">
+              <b>Mostrar insignia en el Chat Overlay (/chat)</b>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px;">
+              <input type="checkbox" id="m_animado" style="width:18px;height:18px;accent-color:#ffd45e;">
+              <span>✨ Animación de destellos pixel</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- MENSAJE INDIVIDUAL -->
+      <div class="panel-box">
+        <div class="panel-box-title">💬 Mensaje de Bienvenida Propio (Opcional)</div>
+        <div class="form-group">
+          <input type="text" id="m_mensaje" placeholder="Déjalo vacío para usar el mensaje global" maxlength="100">
+          <span class="mut" style="font-size:11px;">Variables: {nombre}, {usuario}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <div style="display:flex;gap:6px;">
+        <button type="button" class="btn secondary" id="m_btn_probar_entrada">▶ Probar Entrada</button>
+        <button type="button" class="btn secondary" id="m_btn_probar_chat">💬 Probar Chat</button>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="button" class="btn secondary" id="m_btn_cancelar">Cancelar</button>
+        <button type="button" class="btn vip-gold" id="m_btn_guardar">💾 Guardar VIP</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const api=(u,b,m)=>fetch(u,{method:m||(b?"POST":"GET"),headers:{"Content-Type":"application/json"},body:b&&JSON.stringify(b)}).then(r=>r.json());
+const CAMPOS=["activa","silenciar_video","volumen","tam","pos","max","repetir_min","mensaje","mostrar_nombre","fuente","color_nombre","color_mensaje","color_borde","color_fondo","fondo","tam_nombre","tam_mensaje","animacion","efecto_entrada","brillo","texto_pos","seg_texto","caduca_seg"];
+
+let cfgActual={ vips: [], videos: [] };
+let indiceEdicion = -1; // -1 = nuevo VIP
+
+// Pestañas
+function cambiarPestana(activa){
+  $("tab_vips").className = activa==="vips" ? "tab-btn on" : "tab-btn";
+  $("tab_diseno").className = activa==="diseno" ? "tab-btn on" : "tab-btn";
+  $("tab_videos").className = activa==="videos" ? "tab-btn on" : "tab-btn";
+  $("tab_vistos").className = activa==="vistos" ? "tab-btn on" : "tab-btn";
+
+  $("sec_vips").hidden = activa!=="vips";
+  $("sec_diseno").hidden = activa!=="diseno";
+  $("sec_videos").hidden = activa!=="videos";
+  $("sec_vistos").hidden = activa!=="vistos";
+}
+$("tab_vips").onclick=()=>cambiarPestana("vips");
+$("tab_diseno").onclick=()=>cambiarPestana("diseno");
+$("tab_videos").onclick=()=>cambiarPestana("videos");
+$("tab_vistos").onclick=()=>cambiarPestana("vistos");
+
+// Preview de Tarjeta
+function preview(animar){
+  if(!$("pvbox")) return;
+  const s=$("pvbox").style;
+  const fuente=$("fuente") ? $("fuente").value : "Impact";
+  s.setProperty("--f",fuente?JSON.stringify(fuente)+",":"");
+  s.setProperty("--cn",$("color_nombre") ? $("color_nombre").value : "#ffd45e");
+  s.setProperty("--cm",$("color_mensaje") ? $("color_mensaje").value : "#ffffff");
+  s.setProperty("--cb",$("color_borde") ? $("color_borde").value : "#000000");
+
+  const tn = $("tam_nombre") ? +$("tam_nombre").value : (cfgActual.tam_nombre || 64);
+  const tm = $("tam_mensaje") ? +$("tam_mensaje").value : (cfgActual.tam_mensaje || 32);
+  s.setProperty("--tn",Math.min(tn || 64, 70)+"px");
+  s.setProperty("--tm",Math.min(tm || 32, 40)+"px");
+
+  const bg = $("fondo") && $("fondo").checked && $("color_fondo") ? $("color_fondo").value+"c0" : "transparent";
+  s.setProperty("--bg", bg);
+
+  if($("pvb")) $("pvb").className="vb "+($("texto_pos") ? $("texto_pos").value : "abajo");
+  if($("pvn")) {
+    $("pvn").hidden = $("mostrar_nombre") ? !$("mostrar_nombre").checked : false;
+    $("pvn").textContent = "NombreVIP";
+  }
+  if($("pvm")) {
+    const rawMsg = $("mensaje") ? $("mensaje").value : "¡Bienvenido al directo!";
+    $("pvm").textContent = rawMsg.replace(/\{nombre\}/g,"NombreVIP").replace(/\{usuario\}/g,"@usuario");
+  }
+
+  const i=$("pvi");
+  if(i){
+    i.className="vbi";
+    if(animar){
+      void i.offsetWidth;
+      const anim = $("animacion") ? $("animacion").value : "zoom";
+      const conBrillo = $("brillo") && $("brillo").checked ? " brillo" : "";
+      i.className="vbi a-" + anim + conBrillo;
+    }
+  }
+  const fx=$("pvfx");
+  if(fx){
+    fx.className="";
+    const efx = $("efecto_entrada") ? $("efecto_entrada").value : "ninguno";
+    if(animar && efx !== "ninguno"){
+      fx.className="fx fx-" + efx;
+      setTimeout(()=>fx.className="",750);
+    }
+  }
+}
+
+// Cargar todo
+async function cargar(){
+  try{
+    const d=await api("/api/vip");
+    if(!d || !d.vips){
+      throw new Error("Respuesta inválida del servidor");
+    }
+    cfgActual=d;
+    CAMPOS.forEach(k=>{
+      const el=$(k);
+      if(el){
+        if(el.type==="checkbox") el.checked=Boolean(d[k]);
+        else el.value=d[k]!==undefined?d[k]:"";
+      }
+    });
+    preview(false);
+    renderizarTablaVips();
+    renderizarTablaVideos();
+    renderizarRecientes(d);
+  }catch(e){
+    console.error("Error al cargar configuración de VIPs:", e);
+    if($("tbody_vips") && !$("tbody_vips").children.length){
+      const errBox = $("estado");
+      if(errBox) errBox.textContent = "⚠ No se pudo conectar con el servidor.";
+    }
+  }
+}
+
+// Renderizar tabla de VIPs
+function renderizarTablaVips(){
+  const tb=$("tbody_vips");
+  tb.innerHTML="";
+  const lista=cfgActual.vips||[];
+  const q=$("buscar").value.trim().toLowerCase();
+
+  let visibles=0;
+  lista.forEach((v, idx)=>{
+    const textoCompleto = `${v.nombre} ${v.usuario} ${v.usuario_kick||""}`.toLowerCase();
+    if(q && !textoCompleto.includes(q)) return;
+    visibles++;
+
+    const tr=document.createElement("tr");
+
+    // Rango badge
+    const rangoMap = {
+      vip: `<span class="badge role-vip">✦ VIP</span>`,
+      mod: `<span class="badge role-mod">🛡️ Mod</span>`,
+      top: `<span class="badge role-top">👑 Top</span>`
+    };
+    const rangoBadge = rangoMap[v.rango] || rangoMap.vip;
+
+    // Badges de usuario TikTok y Kick
+    const badgeTT = v.usuario
+      ? `<span class="badge tiktok">🎵 @${v.usuario}</span>`
+      : `<span class="badge off" style="font-size:10px;">Sin TikTok</span>`;
+
+    const badgeKick = v.usuario_kick
+      ? `<span class="badge kick">🟢 @${v.usuario_kick}</span>`
+      : `<span class="badge off" style="font-size:10px;opacity:.65;">Sin vincular</span>`;
+
+    // Video display
+    const videoDisplay = v.video
+      ? `<span class="clip-chip" style="display:inline-flex;padding:2px 8px;gap:6px;">
+           <span style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🎬 ${v.video.replace(/^[0-9a-f]{8,}_/i,"")}</span>
+           <button type="button" class="btn secondary icon-only" onclick="window.open('/vip/video/${v.video}','_blank','width=520,height=340')">▶</button>
+         </span>`
+      : `<span class="badge off">Solo Tarjeta</span>`;
+
+    // Estandarte & Color
+    const estandarteMap = {
+      corona: "👑 Corona", espada: "⚔️ Espada", puño: "🥊 Puño", escudo: "🛡️ Escudo", estrella: "⭐ Estrella"
+    };
+    const estandarteTxt = estandarteMap[v.estandarte] || "Sin estandarte";
+    const colorBox = v.color ? `<span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:${v.color};border:1px solid #fff;margin-right:4px;"></span>` : "";
+
+    tr.innerHTML = `
+      <td>
+        <div class="col-actions">
+          <button type="button" class="btn-action play" title="Probar video de entrada en OBS" onclick="probarEntradaVip(${idx})">▶</button>
+          <button type="button" class="btn-action chat" title="Probar banner en chat de OBS" onclick="probarChatVip(${idx})">💬</button>
+          <button type="button" class="btn-action edit" title="Editar VIP" onclick="abrirEditorVip(${idx})">✏️</button>
+          <button type="button" class="btn-action delete" title="Eliminar VIP" onclick="eliminarVip(${idx})">🗑️</button>
+        </div>
+      </td>
+      <td>
+        <label class="switch">
+          <input type="checkbox" ${v.activo!==false?"checked":""} onchange="toggleActivoVip(${idx}, this.checked)">
+          <span class="slider"></span>
+        </label>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <b style="color:#fff;">${v.nombre||"VIP"}</b>
+          ${rangoBadge}
+        </div>
+      </td>
+      <td>${badgeTT}</td>
+      <td>${badgeKick}</td>
+      <td>${videoDisplay}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${colorBox}
+          <span style="color:#cbd5e1;font-size:12px;">${estandarteTxt}</span>
+          ${v.banner_chat ? '<span style="color:#53fc18;font-size:11px;" title="Banner en chat activo">●</span>' : ''}
+        </div>
+      </td>
+      <td style="color:#8b9bb4;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+        ${v.mensaje || "<i style='opacity:.6;'>Global</i>"}
+      </td>
+    `;
+    tb.appendChild(tr);
+  });
+
+  $("cuenta").textContent = `(${lista.length} VIPs${q ? `, ${visibles} encontrados` : ""})`;
+}
+
+// Renderizar tabla de videos
+function renderizarTablaVideos(){
+  const tb=$("tbody_videos");
+  tb.innerHTML="";
+  const vids=cfgActual.videos||[];
+  if(!vids.length){
+    tb.innerHTML=`<tr><td colspan="3" style="text-align:center;color:#64748b;padding:18px;">No hay videos subidos aún.</td></tr>`;
+    return;
+  }
+  vids.forEach(x=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><b style="color:#fff;">🎬 ${x.n}</b></td>
+      <td>${x.mb} MB</td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button type="button" class="btn secondary icon-only" onclick="window.open('/vip/video/${x.n}','_blank','width=600,height=380')">▶ Ver</button>
+          <button type="button" class="btn secondary icon-only danger" onclick="borrarVideo('${x.n}')">🗑️ Borrar</button>
+        </div>
+      </td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+// Renderizar tabla de recientes
+function renderizarRecientes(d){
+  const tb=$("tbody_recientes");
+  tb.innerHTML="";
+  $("pend").textContent = "Alertas en espera: " + (d.pendientes||0);
+  const rec=d.recientes||[];
+  if(!rec.length){
+    tb.innerHTML=`<tr><td colspan="3" style="text-align:center;color:#64748b;padding:18px;">Nadie todavía. Los usuarios aparecerán al entrar, comentar o interactuar en TikTok o Kick.</td></tr>`;
+    return;
+  }
+  rec.forEach(([u, n])=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><b style="color:#fff;">@${u}</b></td>
+      <td>${n || "Sin apodo"}</td>
+      <td>
+        <button type="button" class="btn vip-gold icon-only" onclick="anadirDesdeRecientes('${u}', '${(n||u).replace(/'/g,"\\'")}')">➕ Convertir en VIP</button>
+      </td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+// Acciones VIP
+async function toggleActivoVip(idx, estado){
+  if(cfgActual.vips[idx]){
+    cfgActual.vips[idx].activo = estado;
+    await api("/api/vip", cfgActual);
+  }
+}
+
+async function eliminarVip(idx){
+  const v=cfgActual.vips[idx];
+  if(!confirm(`¿Eliminar permanentemente a "${v?.nombre||'este VIP'}"?`)) return;
+  cfgActual.vips.splice(idx, 1);
+  await api("/api/vip", cfgActual);
+  renderizarTablaVips();
+}
+
+async function probarEntradaVip(idx){
+  const v=cfgActual.vips[idx];
+  if(!v) return;
+  const r=await api("/api/vip/probar", {
+    video: v.video,
+    nombre: v.nombre,
+    mensaje: v.mensaje,
+    color: v.color
+  });
+  if(r.ok){
+    $("estado").textContent = `✓ Prueba de entrada de "${v.nombre}" enviada a OBS`;
+    setTimeout(()=>{$("estado").textContent="";}, 2800);
+  } else {
+    alert(r.error||"Error al probar entrada");
+  }
+}
+
+async function probarChatVip(idx){
+  const v=cfgActual.vips[idx];
+  if(!v) return;
+  const r=await api("/api/vip/chat/prueba", {
+    usuario: v.usuario || v.usuario_kick,
+    nombre: v.nombre,
+    color: v.color || "#ffd45e",
+    rango: v.rango || "vip",
+    estandarte: v.estandarte || "corona",
+    animado: Boolean(v.animado)
+  });
+  if(r.ok){
+    $("estado").textContent = `✓ Prueba de chat de "${v.nombre}" enviada a OBS`;
+    setTimeout(()=>{$("estado").textContent="";}, 2800);
+  } else {
+    alert("No se pudo enviar la prueba al chat. Asegúrate de tener /chat abierto en OBS.");
+  }
+}
+
+// ==============================================================
+// MODAL EDITOR DE VIP
+// ==============================================================
+function actualizarSelectVideoModal(videoActual){
+  const sel=$("m_select_video");
+  sel.innerHTML=`<option value="">-- Sin video (solo tarjeta de texto) --</option>`;
+  (cfgActual.videos||[]).forEach(x=>{
+    const opt=document.createElement("option");
+    opt.value=x.n;
+    opt.textContent=`🎬 ${x.n} (${x.mb} MB)`;
+    if(x.n===videoActual) opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
+
+function abrirEditorVip(idx){
+  indiceEdicion = idx;
+  const v = cfgActual.vips[idx];
+  if(!v) return;
+
+  $("m_titulo_modal").innerHTML = `✏️ Editar VIP: <b>${v.nombre}</b>`;
+  $("m_nombre").value = v.nombre || "";
+  $("m_usuario_tt").value = v.usuario || "";
+  $("m_usuario_kick").value = v.usuario_kick || "";
+  $("m_usuario_tw").value = v.usuario_twitch || "";
+  $("m_usuario_yt").value = v.usuario_youtube || "";
+  $("m_rango").value = v.rango || "vip";
+  $("m_estandarte").value = v.estandarte || "none";
+  $("m_usar_color").checked = Boolean(v.color);
+  $("m_color").value = v.color || "#ffd45e";
+  $("m_banner_chat").checked = Boolean(v.banner_chat);
+  $("m_animado").checked = Boolean(v.animado);
+  $("m_mensaje").value = v.mensaje || "";
+  $("m_silenciar_video").checked = Boolean(v.silenciar_video);
+
+  actualizarSelectVideoModal(v.video || "");
+  $("modal_editor").style.display = "flex";
+}
+
+function abrirCrearVip(preUsuario="", preNombre=""){
+  indiceEdicion = -1;
+  $("m_titulo_modal").innerHTML = `➕ Añadir Nuevo VIP`;
+  $("m_nombre").value = preNombre;
+  $("m_usuario_tt").value = preUsuario;
+  $("m_usuario_kick").value = "";
+  $("m_usuario_tw").value = "";
+  $("m_usuario_yt").value = "";
+  $("m_rango").value = "vip";
+  $("m_estandarte").value = "none";
+  $("m_usar_color").checked = false;
+  $("m_color").value = "#ffd45e";
+  $("m_banner_chat").checked = true;
+  $("m_animado").checked = true;
+  $("m_mensaje").value = "";
+  $("m_silenciar_video").checked = false;
+
+  actualizarSelectVideoModal("");
+  $("modal_editor").style.display = "flex";
+}
+$("btn_crear_vip").onclick=()=>abrirCrearVip();
+
+function anadirDesdeRecientes(u, n){
+  cambiarPestana("vips");
+  abrirCrearVip(u, n);
+}
+
+$("m_cerrar").onclick=()=>{$("modal_editor").style.display="none";};
+$("m_btn_cancelar").onclick=()=>{$("modal_editor").style.display="none";};
+
+$("m_btn_ver_video").onclick=()=>{
+  const v=$("m_select_video").value;
+  if(!v) return alert("Selecciona un video primero.");
+  window.open("/vip/video/"+v,"_blank","width=600,height=380");
+};
+
+// Guardar VIP desde modal
+$("m_btn_guardar").onclick = async ()=>{
+  const nombre = $("m_nombre").value.trim() || "VIP";
+  const usuario = $("m_usuario_tt").value.trim().toLowerCase().replace(/^@/,"");
+  const usuario_kick = $("m_usuario_kick").value.trim().toLowerCase().replace(/^@/,"");
+  const usuario_twitch = $("m_usuario_tw").value.trim().toLowerCase().replace(/^@/,"");
+  const usuario_youtube = $("m_usuario_yt").value.trim();
+
+  if(!usuario && !usuario_kick && !usuario_twitch && !usuario_youtube && !nombre){
+    return alert("Debes ingresar al menos un usuario o el nombre del VIP.");
+  }
+
+  const datosVip = {
+    nombre,
+    usuario,
+    usuario_kick,
+    usuario_twitch,
+    usuario_youtube,
+    rango: $("m_rango").value,
+    estandarte: $("m_estandarte").value,
+    video: $("m_select_video").value,
+    silenciar_video: $("m_silenciar_video").checked,
+    mensaje: $("m_mensaje").value.trim(),
+    color: $("m_usar_color").checked ? $("m_color").value : "",
+    banner_chat: $("m_banner_chat").checked,
+    animado: $("m_animado").checked,
+    activo: true
+  };
+
+  if(!Array.isArray(cfgActual.vips)) cfgActual.vips = [];
+
+  if(indiceEdicion >= 0 && cfgActual.vips[indiceEdicion]){
+    Object.assign(cfgActual.vips[indiceEdicion], datosVip);
+  } else {
+    cfgActual.vips.push(datosVip);
+  }
+
+  await api("/api/vip", cfgActual);
+  $("modal_editor").style.display = "none";
+  renderizarTablaVips();
+  $("estado").textContent = "✓ ¡VIP guardado correctamente!";
+  setTimeout(()=>{$("estado").textContent="";}, 2600);
+};
+
+// Pruebas directas desde modal
+$("m_btn_probar_entrada").onclick = async ()=>{
+  const r=await api("/api/vip/probar", {
+    video: $("m_select_video").value,
+    nombre: $("m_nombre").value.trim() || "VIP",
+    mensaje: $("m_mensaje").value.trim(),
+    color: $("m_usar_color").checked ? $("m_color").value : ""
+  });
+  if(r.ok){
+    $("estado").textContent = "✓ Prueba enviada a OBS";
+    setTimeout(()=>{$("estado").textContent="";}, 2600);
+  } else {
+    alert(r.error||"Error al probar");
+  }
+};
+
+$("m_btn_probar_chat").onclick = async ()=>{
+  const r=await api("/api/vip/chat/prueba", {
+    usuario: $("m_usuario_tt").value.trim() || $("m_usuario_kick").value.trim() || "prueba",
+    nombre: $("m_nombre").value.trim() || "VIP",
+    color: $("m_usar_color").checked ? $("m_color").value : "#ffd45e",
+    rango: $("m_rango").value,
+    estandarte: $("m_estandarte").value,
+    animado: $("m_animado").checked
+  });
+  if(r.ok){
+    $("estado").textContent = "✓ Banner enviado a /chat";
+    setTimeout(()=>{$("estado").textContent="";}, 2600);
+  } else {
+    alert("No se pudo enviar la prueba al chat de OBS.");
+  }
+};
+
+// ==============================================================
+// GESTOR DE VIDEOS & GENERAL
+// ==============================================================
+$("subir").onclick = async ()=>{
+  const f=$("file").files[0];
+  if(!f) return alert("Selecciona un video MP4 o WebM primero.");
+  $("msg").textContent = "Subiendo video…";
+
+  const fd=new FormData();
+  fd.append("archivo", f);
+  const r=await fetch("/api/vip/subir", {method:"POST", body:fd}).then(x=>x.json()).catch(()=>({ok:false, error:"Error al subir"}));
+  $("file").value="";
+
+  if(r.ok){
+    $("msg").textContent = "✓ ¡Video subido: " + r.nombre + "!";
+    setTimeout(()=>{$("msg").textContent="";}, 2600);
+    cargar();
+  } else {
+    alert(r.error || "No se pudo subir.");
+    $("msg").textContent = "";
+  }
+};
+
+async function borrarVideo(nombre){
+  if(!confirm(`¿Eliminar el archivo "${nombre}" del servidor?`)) return;
+  await api("/api/vip/video/" + encodeURIComponent(nombre), null, "DELETE");
+  cargar();
+}
+
+// Guardar ajustes generales
+$("btn_guardar_general").onclick = async ()=>{
+  CAMPOS.forEach(k=>{
+    if($(k)){
+      cfgActual[k] = $(k).type==="checkbox" ? $(k).checked : $(k).type==="number" ? +$(k).value : $(k).value;
+    }
+  });
+  await api("/api/vip", cfgActual);
+  $("estado").textContent = "✓ ¡Ajustes generales guardados!";
+  setTimeout(()=>{$("estado").textContent="";}, 2600);
+};
+
+$("pvbtn").onclick=()=>preview(true);
+CAMPOS.forEach(k=>{
+  const e=$(k);
+  if(e){
+    e.addEventListener("input", ()=>preview(k==="animacion"||k==="brillo"||k==="efecto_entrada"));
+    e.addEventListener("change", ()=>preview(k==="animacion"||k==="brillo"||k==="efecto_entrada"));
+  }
+});
+
+// Botones de cola y saludados
+$("btn_reiniciar_saludados").onclick = async ()=>{
+  await api("/api/vip/reiniciar", {});
+  $("estado").textContent = "✓ Saludados reiniciados. Los VIPs volverán a recibir bienvenida.";
+  setTimeout(()=>{$("estado").textContent="";}, 3000);
+};
+
+$("btn_vaciar_cola").onclick = async ()=>{
+  await api("/api/vip/vaciar", {});
+  $("estado").textContent = "✓ Cola de alertas VIP vaciada.";
+  setTimeout(()=>{$("estado").textContent="";}, 2500);
+  const d=await api("/api/vip?rec=1");
+  renderizarRecientes(d);
+};
+
+// Búsqueda en vivo
+$("buscar").oninput=renderizarTablaVips;
+
+// Helpers OBS
+$("url").textContent = location.origin + "/vip";
+$("copiar").onclick = ()=>navigator.clipboard.writeText($("url").textContent).then(()=>{
+  $("estado").textContent = "✓ ¡URL de OBS copiada!";
+  setTimeout(()=>{$("estado").textContent="";}, 1800);
+});
+$("abrir").onclick = ()=>window.open("/vip", "_blank", "width=850,height=520");
+$("btn_recargar_obs").onclick = ()=>{
+  const nuevaUrl = location.origin + "/vip?v=" + Date.now();
+  navigator.clipboard.writeText(nuevaUrl).then(()=>{
+    $("url").textContent = nuevaUrl;
+    $("estado").textContent = "✓ ¡Nueva URL limpia copiada para OBS!";
+    setTimeout(()=>{$("estado").textContent="";}, 2600);
+  });
+};
+
+cargar();
+setInterval(async ()=>{
+  try{
+    const d=await api("/api/vip?rec=1");
+    renderizarRecientes(d);
+  }catch(e){}
+}, 8000);
+</script></body></html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><script src="/static/flujo.js"></script><style>
+html,body{margin:0;background:transparent;overflow:hidden}
+#stage{position:fixed;bottom:0;width:var(--size,144px);aspect-ratio:16/20;display:flex;align-items:end;justify-content:center;pointer-events:none;user-select:none}
+#stage[hidden]{display:none}
+#stage.izquierda{left:2%}#stage.derecha{right:2%}
+#buddy{position:relative;z-index:1;width:74%;height:92%;object-fit:contain;image-rendering:pixelated}
+#stage.flotar{animation:flotar 2.8s ease-in-out infinite;will-change:transform}
+#stage::before{content:"";position:absolute;inset:2% -8% 0;border-radius:50%;background:radial-gradient(ellipse at 50% 62%,#ffc94270,transparent 62%);clip-path:polygon(48% 0,55% 20%,78% 5%,68% 31%,100% 28%,77% 49%,96% 66%,66% 65%,79% 100%,50% 77%,25% 100%,34% 69%,0 73%,24% 51%,2% 32%,35% 35%,24% 6%);opacity:.85}
+@keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@media(prefers-reduced-motion:reduce){ #buddy.flotar{animation:none;will-change:auto}}
+</style></head><body>
+<div id="stage" hidden><img id="buddy" alt=""></div>
+<script>
+const stage=document.getElementById("stage"), img=document.getElementById("buddy"), files={guerrero:"/static/buddy-guerrero.svg",guardian:"/static/buddy-guardian.svg"}, preview=new URLSearchParams(location.search).get("preview")==="1";
+function aplicar(c){
+  if(!c||(!c.activo&&!preview)){stage.hidden=true;img.removeAttribute("src");return}
+  const key=c.personaje==="aleatorio"?(Math.random()<.5?"guerrero":"guardian"):c.personaje;
+  img.src=files[key]||files.guerrero;img.alt="";stage.style.setProperty("--size",c.tam+"px");
+  stage.className=c.pos+(c.movimiento==="flotar"?" flotar":"");stage.hidden=false;
+}
+async function cargar(){if(preview&&parent!==window)return;try{aplicar(await(await fetch("/api/buddies",{cache:"no-store"})).json())}catch{}}
+const flujo=new Flujo("buddies");flujo.onopen=cargar;flujo.addEventListener("buddy_cfg",e=>aplicar(JSON.parse(e.data)));
+window.addEventListener("message",e=>{if(e.origin===location.origin&&e.source===parent&&e.data&&e.data.pruebaBuddy)aplicar(e.data)});
+</script></body></html>

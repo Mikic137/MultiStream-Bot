@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><script src="/static/flujo.js"></script><title>DB Legends Voz</title>
+<style>
+body{margin:0;background:#0b1220;color:#e8eefc;font:15px "Segoe UI",Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:10px;text-align:center;padding:10px;box-sizing:border-box}
+button{background:#493ee6;color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:15px;cursor:pointer}
+#t{color:#ffd45e;min-height:1.4em}small{color:#8a9bbd}
+</style></head><body>
+<div>🔊 Ventana de sonido del bot</div><div id="t">Esperando mensajes...</div>
+<button id="b">Probar sonido</button>
+<small>Déjala abierta (puedes minimizarla).<br>OBS: Captura de audio de aplicación → esta ventana.</small>
+<script>
+const t=document.getElementById("t"), s=window.speechSynthesis;
+const fin=()=>{t.textContent="Esperando mensajes...";fetch("/api/voz/fin",{method:"POST"}).catch(()=>{})};
+function decir(d){
+  const u=new SpeechSynthesisUtterance(d.t), v=s.getVoices().find(x=>x.name===d.voz);
+  if(v){u.voice=v;u.lang=v.lang}else u.lang="es-ES";
+  u.rate=d.r||1; u.volume=d.v==null?1:d.v;
+  u.onstart=()=>t.textContent=d.t; u.onend=fin;
+  u.onerror=e=>{if(e.error!=="canceled"&&e.error!=="interrupted")fin()};
+  s.speak(u);
+}
+const es=new Flujo("voz-ventana");
+es.addEventListener("voz",e=>decir(JSON.parse(e.data)));
+es.addEventListener("voz_stop",()=>s.cancel());
+document.getElementById("b").onclick=()=>decir({t:"Sonido activado",voz:"",r:1,v:1});
+const latido=()=>fetch("/api/voz/latido",{method:"POST"}).catch(()=>{});
+setInterval(latido,5000); latido();
+</script></body></html>

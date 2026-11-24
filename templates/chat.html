@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <script src="/static/flujo.js"></script>
+  <title>Chat DB Legends</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@700&display=swap');
+
+    html, body {
+      margin: 0;
+      background: transparent;
+      overflow: hidden;
+      font: bold 22px Arial, sans-serif;
+      color: #fff;
+    }
+
+    #c {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      pointer-events: none;
+    }
+
+    /* MENSAJE BASE NORMAL */
+    .m {
+      background: #080d1de8;
+      padding: 10px 14px;
+      border: 1px solid #3a4662;
+      border-left: 4px solid #ffb52d;
+      border-radius: 6px;
+      word-break: break-word;
+      text-shadow: 0 2px #000;
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      transform: translateZ(0);
+      will-change: transform, opacity;
+    }
+    .m b {
+      color: #ffd45e;
+      margin-right: 8px;
+    }
+    .plat-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 1px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-right: 6px;
+      vertical-align: middle;
+      text-shadow: none;
+      line-height: 1.3;
+    }
+    .plat-badge.kick {
+      background: #53fc18;
+      color: #050a0e;
+      border: 1px solid #3be302;
+      box-shadow: 0 0 6px rgba(83, 252, 24, 0.4);
+    }
+    .plat-badge.twitch {
+      background: #9146ff;
+      color: #ffffff;
+      border: 1px solid #a970ff;
+      box-shadow: 0 0 6px rgba(145, 70, 255, 0.45);
+    }
+    .plat-badge.youtube {
+      background: #ff0000;
+      color: #ffffff;
+      border: 1px solid #ff3333;
+      box-shadow: 0 0 6px rgba(255, 0, 0, 0.45);
+    }
+    .plat-badge.tiktok {
+      background: linear-gradient(135deg, #00f2fe 0%, #fe0979 100%);
+      color: #fff;
+      box-shadow: 0 0 6px rgba(254, 9, 121, 0.4);
+    }
+    .m-content {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+      z-index: 4;
+    }
+
+    /* ESTILOS GENERALES DE CHAT */
+    .m.est-pixel {
+      font-family: Consolas, monospace;
+      border: 2px solid #f4c85a;
+      border-radius: 2px;
+      box-shadow: 4px 4px 0 #060912;
+      background: #111729;
+    }
+    .m.est-energia {
+      border: 1px solid #53e5fa;
+      border-left: 5px solid #53e5fa;
+      border-radius: 10px 3px 10px 3px;
+      background: linear-gradient(100deg, #092b3bdd, #11152be8);
+      box-shadow: 0 0 12px #37c9ff55;
+    }
+    .m.est-capsula {
+      border: 1px solid #8ce6c4;
+      border-left: 5px solid #8ce6c4;
+      border-radius: 18px;
+      background: linear-gradient(100deg, #163c39e8, #111a2be8);
+    }
+
+    /* ============================================================== */
+    /* TARJETA VIP ESTÁTICA (CUANDO ✨ ANIMADO NO ESTÁ MARCADO)      */
+    /* ============================================================== */
+    .m.vip {
+      --va: #bd7cff;
+      border: 3px solid var(--va);
+      border-radius: 4px;
+      background: #15112e;
+      box-shadow: 5px 5px 0 #050710;
+      position: relative;
+      overflow: hidden;
+    }
+    .m.vip.rol-top { --va: #ffb52d; background: #261705; border-color: #ffb52d; }
+    .m.vip.rol-mod { --va: #ff334b; background: #26070d; border-color: #ff334b; }
+
+    /* ============================================================== */
+    /* TARJETA VIP ANIMADA COMPLETA (ESTILO GIF PIXEL ART RETRO)     */
+    /* ============================================================== */
+    .m.vip.animado {
+      border-radius: 0 !important;
+      border: 3px solid #10061e;
+      outline: 3px solid var(--va);
+      outline-offset: -1px;
+      position: relative;
+      overflow: visible;
+      background: #0d071e;
+      box-shadow: 4px 4px 0 #000, 0 3px 0 #07040d;
+      animation: pixelBorderCycle 1.6s steps(4) infinite;
+      will-change: outline-color;
+    }
+
+    @keyframes pixelBorderCycle {
+      0% { outline-color: var(--va); }
+      25% { outline-color: #ffffff; }
+      50% { outline-color: #ffd45e; }
+      75% { outline-color: #00f0ff; }
+      100% { outline-color: var(--va); }
+    }
+
+    /* FONDO DE CIELO / MAZMORRA PIXEL RETRO */
+    .pixel-card-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+      background: 
+        repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 2px, transparent 2px, transparent 4px),
+        linear-gradient(135deg, #1b0a33 0%, #0d122e 50%, #200824 100%);
+      opacity: 0.95;
+    }
+
+    /* BARRIDO HOLOGRÁFICO DIAGONAL QUE CRUZA LA TARJETA */
+    .pixel-shimmer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+      background: linear-gradient(115deg, transparent 20%, rgba(255, 255, 255, 0.12) 45%, rgba(255, 255, 255, 0.35) 50%, rgba(255, 255, 255, 0.12) 55%, transparent 80%);
+      background-size: 250% 100%;
+      animation: pixelShimmerSweep 3s steps(8) infinite;
+      will-change: background-position;
+    }
+
+    @keyframes pixelShimmerSweep {
+      0% { background-position: -150% 0; }
+      60% { background-position: 150% 0; }
+      100% { background-position: 150% 0; }
+    }
+
+    /* CRUCES PIXEL EN LAS ESQUINAS (COMO EN TU PRIMERA IMAGEN) */
+    .corner-cross {
+      position: absolute;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      line-height: 1;
+      z-index: 5;
+      pointer-events: none;
+      user-select: none;
+      text-shadow: 1px 1px 0 #000;
+      will-change: transform, opacity;
+    }
+    .corner-cross.tl { top: -6px; left: -6px; color: #ffd45e; animation: cornerBlink1 1.2s steps(2) infinite; }
+    .corner-cross.tr { top: -6px; right: -6px; color: #ffffff; animation: cornerBlink2 1s steps(2) infinite; }
+    .corner-cross.bl { bottom: -6px; left: -6px; color: #ff7700; animation: cornerBlink2 1.4s steps(2) infinite; }
+    .corner-cross.br { bottom: -6px; right: -6px; color: #00f0ff; animation: cornerBlink1 0.9s steps(2) infinite; }
+
+    @keyframes cornerBlink1 {
+      0% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.3) rotate(45deg); }
+      100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+    }
+    @keyframes cornerBlink2 {
+      0% { opacity: 1; transform: scale(1.2) rotate(45deg); }
+      50% { opacity: 0.2; transform: scale(0.7) rotate(0deg); }
+      100% { opacity: 1; transform: scale(1.2) rotate(45deg); }
+    }
+
+    /* ESTRELLAS Y DESTELLOS PIXEL FLOTANTES EN LA TARJETA */
+    .star-dot {
+      position: absolute;
+      font-family: 'Press Start 2P', monospace;
+      line-height: 1;
+      user-select: none;
+      z-index: 2;
+      text-shadow: 1px 1px 0 #000;
+      will-change: transform, opacity;
+    }
+    .star-dot.s1 { top: 8px; right: 58px; font-size: 11px; color: #ffe600; animation: starFlicker1 0.8s steps(2) infinite; }
+    .star-dot.s2 { bottom: 8px; right: 90px; font-size: 8px; color: #54dbed; animation: starFlicker2 1.2s steps(2) infinite; }
+    .star-dot.s3 { top: 12px; left: 62px; font-size: 9px; color: #ff66aa; animation: starFlicker1 1s steps(2) infinite; }
+    .star-dot.s4 { bottom: 10px; left: 160px; font-size: 10px; color: #ffd45e; animation: starFlicker2 1.4s steps(2) infinite; }
+    .star-dot.s5 { top: 22px; right: 20px; font-size: 12px; color: #ffffff; animation: starFlicker1 0.7s steps(2) infinite; }
+    .star-dot.s6 { bottom: 16px; right: 35px; font-size: 8px; color: #ff9900; animation: starFlicker2 1.1s steps(2) infinite; }
+    .star-dot.s7 { top: 6px; left: 135px; font-size: 8px; color: #ffffff; animation: starFlicker1 1.3s steps(2) infinite; }
+
+    @keyframes starFlicker1 {
+      0% { opacity: 0.15; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.25); }
+      100% { opacity: 0.15; transform: scale(0.8); }
+    }
+    @keyframes starFlicker2 {
+      0% { opacity: 1; transform: scale(1.2) rotate(45deg); }
+      50% { opacity: 0.2; transform: scale(0.7) rotate(0deg); }
+      100% { opacity: 1; transform: scale(1.2) rotate(45deg); }
+    }
+
+    /* LA SUPER ESTRELLA ARCOÍRIS PIXEL ART (DE TU SEGUNDA IMAGEN) */
+    .rainbow-star-img {
+      width: 38px;
+      height: 36px;
+      position: absolute;
+      top: -14px;
+      right: 12px;
+      z-index: 6;
+      image-rendering: pixelated;
+      filter: drop-shadow(2px 2px 0 #000);
+      animation: starHop 0.8s steps(4) infinite alternate;
+      will-change: transform;
+    }
+
+    @keyframes starHop {
+      0% { transform: translateY(0) scale(1); }
+      25% { transform: translateY(-4px) scale(1.06); }
+      50% { transform: translateY(-8px) scale(1.12) rotate(-3deg); }
+      75% { transform: translateY(-5px) scale(1.08); }
+      100% { transform: translateY(-9px) scale(1.14) rotate(3deg); }
+    }
+
+    /* ESTANDARTE COLGANTE PIXEL ART (REFERENCIA DE BANDERAS) */
+    .estandarte-svg {
+      width: 36px;
+      height: 70px;
+      flex-shrink: 0;
+      image-rendering: pixelated;
+      shape-rendering: crispEdges;
+      margin-top: -2px;
+      filter: drop-shadow(3px 3px 0 #000);
+      position: relative;
+      z-index: 4;
+      will-change: transform;
+    }
+    .m.vip.animado .estandarte-svg {
+      animation: bannerWave 1.6s steps(4) infinite alternate;
+      transform-origin: top center;
+    }
+    @keyframes bannerWave {
+      0% { transform: rotate(-4deg); }
+      50% { transform: rotate(1deg); }
+      100% { transform: rotate(4deg); }
+    }
+
+    /* CABECERA CON TAG DE ROL */
+    .viphead {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 5px;
+    }
+    .viptag {
+      font-family: 'Press Start 2P', Consolas, monospace;
+      font-size: 9px;
+      letter-spacing: 0.5px;
+      color: #0b0f19;
+      background: var(--va);
+      padding: 4px 7px;
+      border: 2px solid #000;
+      box-shadow: 2px 2px 0 #fff8;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .m.vip.animado .viptag {
+      animation: tagPulse 1s steps(2) infinite alternate;
+      box-shadow: 2px 2px 0 #000, inset 1px 1px 0 #fff;
+    }
+    @keyframes tagPulse {
+      0% { filter: brightness(1); transform: scale(1); }
+      100% { filter: brightness(1.25) drop-shadow(0 0 8px var(--va)); transform: scale(1.03); }
+    }
+
+    .m.vip b {
+      color: #fff;
+      margin: 0;
+      font: 800 19px Consolas, monospace;
+      text-shadow: 2px 2px 0 #000;
+      letter-spacing: 0.5px;
+    }
+
+    /* NOMBRE DEL USUARIO ANIMADO CON CICLO 8-BIT */
+    .m.vip.animado b {
+      animation: nameColorCycle 1.6s steps(4) infinite;
+      display: inline-block;
+    }
+    @keyframes nameColorCycle {
+      0% { color: #ffffff; text-shadow: 2px 2px 0 #000, 0 0 8px #ffffff; }
+      33% { color: #ffd45e; text-shadow: 2px 2px 0 #000, 0 0 10px #ffd45e; }
+      66% { color: #ff9900; text-shadow: 2px 2px 0 #000, 0 0 8px #ff9900; }
+      100% { color: #ffffff; text-shadow: 2px 2px 0 #000, 0 0 8px #ffffff; }
+    }
+
+    .msg-body {
+      font-size: 21px;
+      line-height: 1.35;
+      text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+      font-weight: 700;
+    }
+    .s { height: 1.8em; vertical-align: middle; margin: 0 3px; }
+    .solo .s { height: 3em; }
+  </style>
+</head>
+<body>
+<div id="c"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const MAX = +params.get("max") || 8;
+const c = document.getElementById("c");
+const preview = params.get("preview") === "1";
+const es = new Flujo("chat");
+let boot = null, cfg = { chat_estilo: "clasico" };
+let vipPorUsuario = new Map(), vipPorNombre = new Map();
+let configPromise = Promise.resolve();
+
+const clave = x => String(x || "").normalize("NFKC").trim().replace(/^@/, "").toLocaleLowerCase("es");
+
+/* LA SUPER ESTRELLA ARCOÍRIS PIXEL ART (DE TU IMAGEN, EN FORMATO PNG TRANSPARENTE ULTRA-NÍTIDO) */
+const RAINBOW_STAR_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAkCAYAAADl9UilAAABl0lEQVR4nN2YsUrEQBCGZ8Jho56N2omSylpBRARBsLEQbH0H3+DAzqfwEQQxXHettViJYKPYCWeOU8HGXWF35iCD6+1dFtnN3/wJu8wmX2Yzk6DWGkIIEU0grTWGiJdBpGqFIvUcmFzziKEgBUfWytUw5JpHDASpNpFaWIQgag4x5NxykdrcMDa4f6yVa80hxnKRGuaW1Hz+DnUULzGkHPBVeepHqj9jhy+G1iddJ15iQFKzx5WBl88re+DYfdkZVHafJLVMt9xRNsC62jK+AifGe29rxg9KWtCGgd5hFjkxTe8XV+1z7T6A219JFR/VBS5hMlJ8PfESA5Ikx12Ca/exJKmnOUINxVSkWNESQ1fPz+RU9+/3VCFITZtTUukRk+S+v+BfSDWnu+jXJHV3TkXTU+kRQ8qtVxWG1M5N2/g2KK/ONj1irLGksnw015yTL+0OBCmrPfBTOsSQnj13npLUQ9axDtZdOcJxrumcc4ul9ruVecnUypZrwEVKe34fynmj2kukximdWomOr5lQfwrRM360xH4AQQ/hIkArOpAAAAAASUVORK5CYII=";
+
+/* ESTANDARTES PIXEL ART EN SVG */
+const ESTANDARTES_SVG = {
+  corona: `<svg class="estandarte-svg" viewBox="0 0 16 32" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="16" height="2" fill="#aaa" />
+    <rect x="1" y="2" width="14" height="26" fill="#cc5200" />
+    <rect x="2" y="3" width="12" height="24" fill="#ff7700" />
+    <rect x="4" y="10" width="2" height="2" fill="#ffe100" />
+    <rect x="7" y="9" width="2" height="2" fill="#ffe100" />
+    <rect x="10" y="10" width="2" height="2" fill="#ffe100" />
+    <rect x="4" y="12" width="8" height="4" fill="#ffd000" />
+    <rect x="6" y="11" width="4" height="2" fill="#ffd000" />
+    <polygon points="1,28 8,24 15,28 15,2 1,2" fill="#cc5200" />
+    <polygon points="2,27 8,23 14,27 14,3 2,3" fill="#ff8c1a" />
+    <rect x="4" y="13" width="8" height="3" fill="#fff399" />
+  </svg>`,
+
+  espada: `<svg class="estandarte-svg" viewBox="0 0 16 32" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="16" height="2" fill="#777" />
+    <rect x="1" y="2" width="14" height="26" fill="#7a101d" />
+    <rect x="2" y="3" width="12" height="24" fill="#b91c1c" />
+    <rect x="7" y="7" width="2" height="12" fill="#e2e8f0" />
+    <rect x="5" y="15" width="6" height="2" fill="#f8fafc" />
+    <rect x="7" y="17" width="2" height="4" fill="#94a3b8" />
+    <polygon points="1,26 8,30 15,26 15,2 1,2" fill="#7a101d" />
+    <polygon points="2,25 8,29 14,25 14,3 2,3" fill="#dc2626" />
+  </svg>`,
+
+  puño: `<svg class="estandarte-svg" viewBox="0 0 16 32" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="16" height="2" fill="#777" />
+    <rect x="1" y="2" width="14" height="26" fill="#1e1829" />
+    <rect x="2" y="3" width="12" height="24" fill="#3b2d4a" />
+    <rect x="5" y="9" width="6" height="5" fill="#d8b4e2" />
+    <rect x="5" y="14" width="6" height="4" fill="#b58bc4" />
+    <polygon points="1,28 4,25 8,28 12,25 15,28 15,2 1,2" fill="#1e1829" />
+  </svg>`,
+
+  puno: `<svg class="estandarte-svg" viewBox="0 0 16 32" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="16" height="2" fill="#777" />
+    <rect x="1" y="2" width="14" height="26" fill="#1e1829" />
+    <rect x="2" y="3" width="12" height="24" fill="#3b2d4a" />
+    <rect x="5" y="9" width="6" height="5" fill="#d8b4e2" />
+    <rect x="5" y="14" width="6" height="4" fill="#b58bc4" />
+    <polygon points="1,28 4,25 8,28 12,25 15,28 15,2 1,2" fill="#1e1829" />
+  </svg>`,
+
+  escudo: `<svg class="estandarte-svg" viewBox="0 0 16 32" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="16" height="2" fill="#888" />
+    <rect x="1" y="2" width="14" height="26" fill="#0f4c5c" />
+    <rect x="2" y="3" width="12" height="24" fill="#197280" />
+    <rect x="7" y="8" width="2" height="10" fill="#a5f3fc" />
+    <rect x="4" y="11" width="8" height="2" fill="#a5f3fc" />
+    <rect x="5" y="12" width="6" height="4" fill="#67e8f9" />
+    <polygon points="1,28 8,25 15,28 15,2 1,2" fill="#0f4c5c" />
+  </svg>`,
+
+  estrella: `<svg class="estandarte-svg" viewBox="0 0 16 32" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="16" height="2" fill="#888" />
+    <rect x="1" y="2" width="14" height="26" fill="#4c1d95" />
+    <rect x="2" y="3" width="12" height="24" fill="#7c3aed" />
+    <rect x="7" y="8" width="2" height="8" fill="#fbcfe8" />
+    <rect x="4" y="11" width="8" height="2" fill="#fbcfe8" />
+    <rect x="6" y="10" width="4" height="4" fill="#f472b6" />
+    <polygon points="1,26 8,30 15,26 15,2 1,2" fill="#4c1d95" />
+  </svg>`
+};
+
+async function cargarConfig() {
+  try {
+    const r = await fetch("/api/vip?cache=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) return;
+    const d = await r.json();
+    cfg = d;
+    vipPorUsuario = new Map();
+    vipPorNombre = new Map();
+    (Array.isArray(d.vips) ? d.vips : []).forEach(v => {
+      if (!v || v.activo === false || v.banner_chat !== true) return;
+      const item = {
+        etiqueta: v.nombre || "VIP",
+        color: v.color || "#bd7cff",
+        rango: v.rango || "vip",
+        estandarte: v.estandarte || "none",
+        animado: !!v.animado
+      };
+      if (v.usuario) vipPorUsuario.set(clave(v.usuario), item);
+      if (v.nombre) vipPorNombre.set(clave(v.nombre), item);
+    });
+  } catch {}
+}
+
+function vipDe(d) {
+  if (d.vip && typeof d.vip === "object") return d.vip;
+  if (d.vip === true) return { etiqueta: "VIP", color: d.color_vip || "#bd7cff", rango: "vip", estandarte: "none", animado: false };
+  const id = clave(d.u || d.usuario || d.unique_id || d.user_id);
+  return (id && vipPorUsuario.get(id)) || vipPorNombre.get(clave(d.n || d.nombre)) || null;
+}
+
+function estiloDe(d) {
+  const estilos = ["clasico", "pixel", "energia", "capsula"];
+  const estilo = d.estilo || cfg.chat_estilo;
+  return estilos.includes(estilo) ? estilo : "clasico";
+}
+
+es.addEventListener("boot", e => {
+  const b = JSON.parse(e.data).id;
+  if (boot && boot !== b) location.reload();
+  boot = b;
+});
+
+function mostrar(d) {
+  const m = document.createElement("div");
+  const vip = vipDe(d);
+  const estilo = estiloDe(d);
+
+  let vipClass = "";
+  if (vip) {
+    vipClass = " vip";
+    if (vip.rango === "top") vipClass += " rol-top";
+    else if (vip.rango === "mod") vipClass += " rol-mod";
+    if (vip.animado) vipClass += " animado";
+  }
+
+  m.className = "m est-" + estilo + vipClass;
+
+  // SI LA TARJETA ES ANIMADA: Añadir capas de animación estilo GIF Pixel Art
+  if (vip && vip.animado) {
+    // 1. Fondo animado de mazmorra / cielo cósmico
+    const bgDiv = document.createElement("div");
+    bgDiv.className = "pixel-card-bg";
+    m.append(bgDiv);
+
+    // 2. Destello holográfico que cruza la tarjeta periódicamente
+    const shimmerDiv = document.createElement("div");
+    shimmerDiv.className = "pixel-shimmer";
+    m.append(shimmerDiv);
+
+    // 3. Cruces pixel en las 4 esquinas (de la primera imagen)
+    const c1 = document.createElement("span"); c1.className = "corner-cross tl"; c1.textContent = "+";
+    const c2 = document.createElement("span"); c2.className = "corner-cross tr"; c2.textContent = "+";
+    const c3 = document.createElement("span"); c3.className = "corner-cross bl"; c3.textContent = "+";
+    const c4 = document.createElement("span"); c4.className = "corner-cross br"; c4.textContent = "+";
+    m.append(c1, c2, c3, c4);
+
+    // 4. Estrellas y destellos titilantes pixel dentro de la tarjeta
+    const s1 = document.createElement("span"); s1.className = "star-dot s1"; s1.textContent = "✦";
+    const s2 = document.createElement("span"); s2.className = "star-dot s2"; s2.textContent = "✦";
+    const s3 = document.createElement("span"); s3.className = "star-dot s3"; s3.textContent = "+";
+    const s4 = document.createElement("span"); s4.className = "star-dot s4"; s4.textContent = "·";
+    const s5 = document.createElement("span"); s5.className = "star-dot s5"; s5.textContent = "✦";
+    const s6 = document.createElement("span"); s6.className = "star-dot s6"; s6.textContent = "+";
+    const s7 = document.createElement("span"); s7.className = "star-dot s7"; s7.textContent = "·";
+    m.append(s1, s2, s3, s4, s5, s6, s7);
+
+    // 5. La Super Estrella Arcoíris Pixel Art animada saltando (de tu imagen)
+    const starImg = document.createElement("img");
+    starImg.className = "rainbow-star-img";
+    starImg.src = RAINBOW_STAR_PNG;
+    starImg.alt = "Star";
+    m.append(starImg);
+  }
+
+  // Insertar Estandarte colgante si aplica
+  if (vip && vip.estandarte && ESTANDARTES_SVG[vip.estandarte]) {
+    const estWrap = document.createElement("div");
+    estWrap.innerHTML = ESTANDARTES_SVG[vip.estandarte];
+    m.append(estWrap.firstElementChild);
+  }
+
+  const contentBox = document.createElement("div");
+  contentBox.className = "m-content";
+
+  const n = document.createElement("b");
+  n.textContent = d.n || d.nombre || "";
+
+  // Badge de plataforma (Kick / Twitch / YouTube / TikTok)
+  const plat = (d.plat || (d.plataforma ? String(d.plataforma).toLowerCase() : "kick")).toLowerCase();
+  const platBadge = document.createElement("span");
+  platBadge.className = "plat-badge " + (plat === "kick" ? "kick" : (plat === "twitch" ? "twitch" : (plat === "youtube" ? "youtube" : "tiktok")));
+  platBadge.textContent = plat === "kick" ? "KICK" : (plat === "twitch" ? "TWITCH" : (plat === "youtube" ? "YOUTUBE" : "TIKTOK"));
+
+  if (vip) {
+    const colorFinal = /^#[0-9a-f]{6}$/i.test(vip.color || "")
+      ? vip.color
+      : (vip.rango === "top" ? "#ffb52d" : (vip.rango === "mod" ? "#ff334b" : "#bd7cff"));
+    m.style.setProperty("--va", colorFinal);
+
+    const h = document.createElement("div");
+    h.className = "viphead";
+
+    const tag = document.createElement("span");
+    tag.className = "viptag";
+    
+    // Tag según rol
+    if (vip.rango === "top") {
+      tag.innerHTML = "🏆 TOP DONADOR";
+    } else if (vip.rango === "mod") {
+      tag.innerHTML = "🛡️ MOD";
+    } else {
+      tag.innerHTML = "✦ " + (vip.etiqueta || "VIP");
+    }
+
+    h.append(platBadge, tag, n);
+    contentBox.append(h);
+  } else {
+    contentBox.append(platBadge, n);
+  }
+
+  const textWrap = document.createElement("div");
+  textWrap.className = "msg-body";
+  let hayTexto = false;
+
+  (d.p || [{ t: d.t }]).forEach(x => {
+    if (x.i && x.i.startsWith("https://")) {
+      const im = document.createElement("img");
+      im.className = "s";
+      im.alt = "";
+      im.onerror = () => im.remove();
+      im.src = x.i;
+      textWrap.append(im);
+    } else if (x.t) {
+      hayTexto = true;
+      textWrap.append(document.createTextNode(x.t));
+    }
+  });
+
+  if (!hayTexto) textWrap.classList.add("solo");
+  contentBox.append(textWrap);
+  m.append(contentBox);
+
+  c.append(m);
+  while (c.children.length > MAX) c.firstChild.remove();
+}
+
+es.onopen = () => {
+  configPromise = cargarConfig();
+  c.replaceChildren();
+  if (preview) {
+    mostrar({
+      n: "NEXUS",
+      t: "¡Toda la tarjeta está animada como un GIF pixel art!",
+      p: [{ t: "¡Toda la tarjeta está animada como un GIF pixel art!" }],
+      vip: { etiqueta: "NEXUS", color: "#ffd45e", rango: "top", estandarte: "corona", animado: true },
+      estilo: "pixel"
+    });
+  }
+};
+
+es.addEventListener("vip_cfg", () => { configPromise = cargarConfig(); });
+es.addEventListener("chat", async e => {
+  await configPromise;
+  mostrar(JSON.parse(e.data));
+});
+</script>
+</body>
+</html>

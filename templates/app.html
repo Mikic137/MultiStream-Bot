@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DB Legends Bot · Multi-Stream</title>
+<style>
+:root{--bg:#080d19;--card:#111b2e;--line:#243651;--txt:#e8eefc;--mut:#98a9c5;--acc:#ffd45c;--cyan:#54dbed;--succ:#35e879;--dang:#ff4d67}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:radial-gradient(ellipse at 65% 0,#142745 0,transparent 55%),var(--bg);color:var(--txt);font:14px "Segoe UI",Arial,sans-serif;display:grid;grid-template-columns:220px minmax(0,1fr)}
+nav{display:flex;flex-direction:column;gap:4px;padding:16px 12px;border-right:1px solid var(--line);background:#0b1322;overflow:auto}
+.brand{padding:8px 10px 20px;display:grid;grid-template-columns:36px 1fr;align-items:center;column-gap:9px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.brand-icon{grid-row:span 2;width:36px;height:36px;display:grid;place-items:center;background:linear-gradient(135deg,#ffcf55,#ff7738);border:2px solid #ffe8a0;box-shadow:3px 3px #060912;color:#271326;font-size:21px;border-radius:6px}
+.brand b{font:800 13px Consolas,monospace;letter-spacing:.06em}.brand small{color:var(--cyan);font:700 9px Consolas,monospace;letter-spacing:.16em;margin-top:3px}
+.navlabel{color:#6f83a4;font:700 10px Consolas,monospace;letter-spacing:.14em;padding:12px 10px 4px;text-transform:uppercase}
+nav button{background:transparent;border:1px solid transparent;color:var(--mut);padding:10px 11px;border-radius:8px;text-align:left;cursor:pointer;font:600 14px "Segoe UI",Arial,sans-serif;transition:background .15s,border-color .15s,color .15s}
+nav button:hover{background:#142138;color:#fff}nav button.on{background:#182a43;border-color:#315477;color:#fff;box-shadow:inset 3px 0 var(--acc)}
+main{height:100vh;min-height:0;position:relative;overflow:hidden}
+section{position:absolute;inset:0;overflow:auto;padding:24px clamp(16px,3vw,36px)}
+section[hidden]{display:none}
+iframe{width:100%;height:100%;border:0;display:block}
+.card{background:linear-gradient(145deg,#121e32,#101929);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px;max-width:980px;box-shadow:0 12px 28px #0002}
+h1{font-size:26px;margin:0 0 5px;letter-spacing:-.03em}h2{font-size:12px;letter-spacing:.09em;color:#9fb1ce;margin:0 0 12px;text-transform:uppercase}
+.subhead{color:var(--mut);margin:0 0 20px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;max-width:980px}.status-card{min-height:118px}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;background:#e0a526;margin-right:8px}
+.dot.live{background:#35e879}.dot.off{background:#6b778f}.dot.err{background:#ff4d67}
+.row{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}.row b{width:140px}.row code{flex:1;color:var(--acc);overflow:hidden;text-overflow:ellipsis}
+button.c,.action{background:linear-gradient(120deg,#6754f5,#4b45c7);color:#fff;border:1px solid #9386ff;border-radius:7px;padding:8px 13px;cursor:pointer;font:600 13px "Segoe UI",Arial,sans-serif}
+pre{margin:0;white-space:pre-wrap;color:#b9c7e6;font:12px Consolas,monospace}
+.mut{color:var(--mut)}
+.buddy-settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;max-width:760px;margin:18px 0}
+.buddy-settings label{display:grid;gap:6px;color:var(--mut);font-size:12px}.buddy-settings input,.buddy-settings select{background:#0b1424;color:var(--txt);border:1px solid #34496a;border-radius:7px;padding:10px;font:inherit}
+.buddy-url{color:var(--acc);font:13px Consolas,monospace;overflow-wrap:anywhere}
+@media(max-width:760px){body{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}nav{height:auto;max-height:145px;flex-direction:row;align-content:flex-start;align-items:center;border-right:0;border-bottom:1px solid var(--line);padding:8px;gap:4px}.brand{padding:4px 8px;border:0;margin:0 8px 0 0;grid-template-columns:30px auto}.brand-icon{width:30px;height:30px;font-size:17px}.brand small,.navlabel{display:none}nav button{padding:8px 10px;white-space:nowrap;font-size:12px}main{height:auto;min-height:0}section{padding:16px}.row b{width:70px}}
+</style></head><body>
+<nav aria-label="Navegación principal">
+ <div class="brand"><span class="brand-icon">✦</span><b>DB LEGENDS</b><small>MULTI-STREAM</small></div>
+ <div class="navlabel">General</div>
+ <button data-t="estado" class="on" aria-current="page">◈ &nbsp;Estado</button>
+ <button data-t="stats">▥ &nbsp;Stream</button>
+ <button data-t="logs">☷ &nbsp;Registros</button>
+ <div class="navlabel">En directo</div>
+ <button data-t="retos">◎ &nbsp;Retos</button>
+ <button data-t="chat">▤ &nbsp;Chat OBS</button>
+ <button data-t="meta">▰ &nbsp;Meta de ahorro</button>
+ <button data-t="musica">♫ &nbsp;Música</button>
+ <button data-t="voz">♬ &nbsp;Voz (TTS)</button>
+ <button data-t="promo">↗ &nbsp;Promos</button>
+ <button data-t="vip">★ &nbsp;VIPs</button>
+ <button data-t="loots">◇ &nbsp;Streamloots</button>
+ <button data-t="sorteo">🎁 &nbsp;Ruleta Sorteo</button>
+ <button data-t="alertas">⚡ &nbsp;Alertas LIVE</button>
+ <button data-t="tops">🏆 &nbsp;Metas y Tops</button>
+ <button data-t="hk">⚔️ &nbsp;Hollow Knight</button>
+ <button data-t="contador">⏱️ &nbsp;Contador Festival</button>
+</nav>
+<main>
+ <section id="estado">
+  <h1>Panel de control</h1><p class="subhead">Tu stream multi-plataforma de un vistazo (Kick, Twitch, YouTube).</p>
+  <div class="grid">
+   <!-- KICK -->
+   <div class="card status-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <h2>Kick.com</h2>
+      <span style="font-size:10px;font-weight:900;padding:2px 6px;border-radius:4px;background:#53fc18;color:#0b0e14;">KICK</span>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <input id="kick_canal" placeholder="Tu canal de Kick (ej: micanal)" style="background:#0b1424;color:#fff;border:1px solid #34496a;border-radius:6px;padding:6px 8px;flex:1;font-size:12px;">
+      <button id="btn_kick_conectar" class="c" style="padding:6px 10px;font-size:12px;">Conectar</button>
+      <button id="btn_kick_desconectar" style="background:#b8324a;color:#fff;border:0;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px;" hidden>Desconectar</button>
+    </div>
+    <p><span id="kick_dot" class="dot off"></span><b id="kick_est">Desconectado</b></p>
+    <p class="mut" id="kick_msg" style="font-size:11px;margin:2px 0 0;"></p>
+    <p style="margin:4px 0 0;font-size:13px;font-weight:700;"><span style="color:#53fc18;">👀 Viewers:</span> <span id="kk_viewers">0</span></p>
+   </div>
+
+   <!-- TWITCH -->
+   <div class="card status-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <h2>Twitch</h2>
+      <span style="font-size:10px;font-weight:900;padding:2px 6px;border-radius:4px;background:#9146ff;color:#fff;">TWITCH</span>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <input id="twitch_canal" placeholder="Tu canal de Twitch (ej: micanal)" style="background:#0b1424;color:#fff;border:1px solid #34496a;border-radius:6px;padding:6px 8px;flex:1;font-size:12px;">
+      <button id="btn_twitch_conectar" class="c" style="padding:6px 10px;font-size:12px;">Conectar</button>
+      <button id="btn_twitch_desconectar" style="background:#b8324a;color:#fff;border:0;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px;" hidden>Desconectar</button>
+    </div>
+    <p><span id="twitch_dot" class="dot off"></span><b id="twitch_est">Desconectado</b></p>
+    <p class="mut" id="twitch_msg" style="font-size:11px;margin:2px 0 0;"></p>
+    <p style="margin:4px 0 0;font-size:13px;font-weight:700;"><span style="color:#a970ff;">👀 Viewers:</span> <span id="tw_viewers">0</span></p>
+   </div>
+
+   <!-- YOUTUBE -->
+   <div class="card status-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <h2>YouTube Live</h2>
+      <span style="font-size:10px;font-weight:900;padding:2px 6px;border-radius:4px;background:#ff0000;color:#fff;">YOUTUBE</span>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <input id="yt_canal" placeholder="Canal o @handle (ej: @micanal)" style="background:#0b1424;color:#fff;border:1px solid #34496a;border-radius:6px;padding:6px 8px;flex:1;font-size:12px;">
+      <button id="btn_yt_conectar" class="c" style="padding:6px 10px;font-size:12px;">Conectar</button>
+      <button id="btn_yt_desconectar" style="background:#b8324a;color:#fff;border:0;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px;" hidden>Desconectar</button>
+    </div>
+    <p><span id="yt_dot" class="dot off"></span><b id="yt_est">Desconectado</b></p>
+    <p class="mut" id="yt_msg" style="font-size:11px;margin:2px 0 0;"></p>
+    <p style="margin:4px 0 0;font-size:13px;font-weight:700;"><span style="color:#ff4444;">👀 Viewers:</span> <span id="yt_viewers">0</span></p>
+   </div>
+
+   <!-- TIKTOK -->
+   <div class="card status-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <h2>TikTok LIVE</h2>
+      <span style="font-size:10px;font-weight:900;padding:2px 6px;border-radius:4px;background:#00f2fe;color:#0b0e14;">TIKTOK</span>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <input id="tt_canal" placeholder="Usuario (ej: @tu_usuario)" value="" style="background:#0b1424;color:#fff;border:1px solid #34496a;border-radius:6px;padding:6px 8px;flex:1;font-size:12px;">
+      <button id="btn_tt_conectar" class="c" style="padding:6px 10px;font-size:12px;">Conectar</button>
+      <button id="btn_tt_desconectar" style="background:#b8324a;color:#fff;border:0;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px;" hidden>Desconectar</button>
+    </div>
+    <p><span id="tt_dot" class="dot off"></span><b id="tt_est">Desconectado</b></p>
+    <p class="mut" id="tt_msg" style="font-size:11px;margin:2px 0 0;"></p>
+    <p style="margin:4px 0 0;font-size:13px;font-weight:700;"><span style="color:#00f2fe;">👀 Viewers:</span> <span id="tt_viewers">0</span></p>
+   </div>
+
+   <!-- FUENTES OBS -->
+   <div class="card status-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <h2>Fuentes OBS</h2>
+      <button id="btn_obs_recargar" class="c" style="padding:2px 8px;font-size:11px;" title="Recargar las fuentes de navegador en OBS">Refrescar OBS</button>
+    </div>
+    <div id="fuentes" class="mut">Esperando señal…</div>
+    <p id="obs_info" class="mut" style="font-size:11px;margin:4px 0 0;"></p>
+   </div>
+  </div>
+
+  <!-- TARJETA CONTROL IA GOKU & BULMA -->
+  <div class="card" style="margin-top:16px;background:linear-gradient(135deg,#131f36 0%,#0e1626 100%);border:1px solid #2d456b;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h2 style="margin:0;display:flex;align-items:center;gap:8px;color:#00e5ff;font-size:14px;">
+          <span>🌸 🥋</span> <span>IA de Bulma & Goku (Fish Audio)</span>
+        </h2>
+        <p class="mut" style="margin:4px 0 0;font-size:12px;">
+          Permite activar o desactivar al instante las respuestas con voces clonadas IA del chat (comandos <code>!b</code> y <code>!g</code>).
+        </p>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span id="ia_status_badge" style="font-size:12px;font-weight:bold;padding:5px 12px;border-radius:6px;background:#35e87922;color:#35e879;border:1px solid #35e87944;">
+          ● ACTIVADA
+        </span>
+        <button id="btn_ia_toggle" class="c" style="background:linear-gradient(120deg,#00b4d8,#0077b6);font-size:13px;font-weight:700;padding:8px 16px;">
+          Desactivar IA
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLATAFORMAS VIEWERS OBS -->
+  <div class="card" style="margin-top:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <div>
+        <h2 style="margin:0;">Plataformas Activas para Viewers (OBS)</h2>
+        <p class="mut" style="margin:2px 0 0;font-size:12px;">Activa o desactiva las plataformas que se mostrarán en el overlay y se sumarán al contador total.</p>
+      </div>
+      <span id="plat_save_status" style="font-size:12px;color:#53fc18;font-weight:700;"></span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:18px;margin:14px 0 12px;align-items:center;">
+      <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:700;">
+        <input type="checkbox" id="plat_kk" checked style="accent-color:#53fc18;transform:scale(1.15);">
+        <span style="color:#53fc18;">Kick</span>
+      </label>
+      <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:700;">
+        <input type="checkbox" id="plat_tw" checked style="accent-color:#a970ff;transform:scale(1.15);">
+        <span style="color:#a970ff;">Twitch</span>
+      </label>
+      <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:700;">
+        <input type="checkbox" id="plat_yt" checked style="accent-color:#ff4444;transform:scale(1.15);">
+        <span style="color:#ff4444;">YouTube</span>
+      </label>
+      <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:700;">
+        <input type="checkbox" id="plat_tt" checked style="accent-color:#00f2fe;transform:scale(1.15);">
+        <span style="color:#00f2fe;">TikTok</span>
+      </label>
+      <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:600;margin-left:auto;">
+        <input type="checkbox" id="plat_ocultar_off" style="accent-color:#ffd45e;transform:scale(1.15);">
+        <span style="color:#ffd45e;">Ocultar automáticamente si está desconectada/offline</span>
+      </label>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);">
+      <span style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;">Presets rápidos:</span>
+      <button class="c" style="font-size:11px;padding:4px 8px;" onclick="aplicarPresetPlat(true,true,true,true)">🌐 Todas (4)</button>
+      <button class="c" style="font-size:11px;padding:4px 8px;" onclick="aplicarPresetPlat(false,true,true,true)">Kick + Twitch + YouTube</button>
+      <button class="c" style="font-size:11px;padding:4px 8px;" onclick="aplicarPresetPlat(true,false,false,true)">TikTok + YouTube</button>
+      <button class="c" style="font-size:11px;padding:4px 8px;" onclick="aplicarPresetPlat(false,false,true,true)">Twitch + YouTube</button>
+      <button class="c" style="font-size:11px;padding:4px 8px;" onclick="aplicarPresetPlat(false,true,true,false)">Kick + Twitch</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Acceso rápido a escenas de OBS</h2>
+    <div id="urls"></div>
+    <p class="mut">Consejo: en OBS usa 30 FPS y activa «Apagar origen cuando no está visible».</p>
+  </div>
+ </section>
+
+ <section id="stats" hidden style="padding:0"><iframe data-src="/stats"></iframe></section>
+ <section id="retos" hidden><iframe data-src="/panel"></iframe></section>
+ <section id="chat" hidden style="padding:0;background:#1b2338"><iframe data-src="/chat"></iframe></section>
+
+ <section id="meta" hidden>
+  <h1>Meta de ahorro</h1><p class="subhead">Comparte el avance hacia tu objetivo del stream.</p>
+  <div class="card"><h2>Configura el objetivo</h2>
+   <label><input type="checkbox" id="mactive"> Mostrar la meta en OBS</label>
+   <div class="buddy-settings">
+    <label>Nombre de la meta<input id="mtitle" maxlength="50" value="PC Gamer"></label>
+    <label>Objetivo<select id="mcurrency"><option>USD</option><option>EUR</option><option>MXN</option><option>COP</option><option>PEN</option></select></label>
+    <label>Cantidad objetivo<input id="mtarget" type="number" min="0.01" step="0.01"></label>
+    <label>Ahorrado hasta ahora<input id="mraised" type="number" min="0" step="0.01"></label>
+   </div>
+   <p><button class="action" id="msave">Guardar meta</button> <span class="mut" id="mmsg"></span></p>
+   <div class="buddy-url" id="murl"></div><button class="c" id="mcopy">Copiar enlace OBS</button>
+  </div>
+  <div class="card"><h2>Vista previa</h2><div style="height:200px;background:repeating-conic-gradient(#182239 0 25%,#202b42 0 50%) 50%/18px 18px;border:1px solid #384962;border-radius:10px;overflow:hidden"><iframe data-src="/meta?preview=1" title="Vista previa de la meta"></iframe></div></div>
+ </section>
+
+ <section id="musica" hidden style="padding:0"><iframe data-src="/musica"></iframe></section>
+ <section id="voz" hidden style="padding:0"><iframe data-src="/voz"></iframe></section>
+ <section id="promo" hidden style="padding:0"><iframe data-src="/promo/panel"></iframe></section>
+ <section id="vip" hidden style="padding:0"><iframe data-src="/vip/panel"></iframe></section>
+ <section id="loots" hidden style="padding:0"><iframe data-src="/loots/panel"></iframe></section>
+ <section id="sorteo" hidden style="padding:0"><iframe data-src="/sorteo/panel"></iframe></section>
+ <section id="alertas" hidden style="padding:0"><iframe data-src="/alertas/panel"></iframe></section>
+ <section id="tops" hidden style="padding:0"><iframe data-src="/tops/panel"></iframe></section>
+ <section id="hk" hidden style="padding:0"><iframe data-src="/hk/panel"></iframe></section>
+ <section id="contador" hidden style="padding:0"><iframe data-src="/contador/panel"></iframe></section>
+ <section id="logs" hidden><div class="card"><h2>Registro de eventos</h2><pre id="log">Sin eventos todavía.</pre></div></section>
+</main>
+
+<script>
+const $=s=>document.querySelector(s); let actual=localStorage.getItem("db-tab")||"estado";
+let bulmaActivaActual = true;
+const tabs=[...document.querySelectorAll("nav button")];
+function ir(id, forzar=false){
+  if(!document.getElementById(id))id="estado";
+  actual=id; localStorage.setItem("db-tab",id); tabs.forEach(b=>{b.classList.toggle("on",b.dataset.t===id);if(b.dataset.t===id)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+  document.querySelectorAll("section").forEach(s=>s.hidden=s.id!==id);
+  const f=$("#"+id+" iframe");
+  if(f){
+    if(forzar || !f.getAttribute("src") || f.getAttribute("src")==="about:blank"){
+      f.src=f.dataset.src;
+    }
+  }
+  refrescar();
+}
+tabs.forEach(b=>b.onclick=()=>{
+  const yaActiva = (actual === b.dataset.t);
+  ir(b.dataset.t, yaActiva);
+});
+
+[["Contador Legends Festival","/contador"],["Sorteo (Ruleta)","/sorteo"],["Ruleta Retos","/overlay"],["Chat Multi-Stream","/chat"],["Contador Viewers","/viewers"],["Top Donador Live","/top_donador"],["Top Streamloots VIP","/top_streamloots"],["Barra Multi-Tops","/tops?modo=rotar"],["Meta","/meta"],["Alertas LIVE","/alertas"],["Voz (TTS)","/voz/player"],["Música OBS (Player)","/musica/player"],["VIPs","/vip"],["Promo","/promo"],["Streamloots","/loots"]].forEach(([n,r])=>{
+  const row=document.createElement("div"),b=document.createElement("b"),c=document.createElement("code"),k=document.createElement("button");
+  row.className="row"; b.textContent=n; c.textContent=location.origin+r; k.className="c"; k.textContent="Copiar";
+  k.onclick=()=>navigator.clipboard.writeText(c.textContent).then(()=>{k.textContent="¡Copiado!";setTimeout(()=>k.textContent="Copiar",1200)});
+  row.append(b,c,k); $("#urls").append(row);
+});
+
+async function refrescar(){
+  if(document.hidden) return;
+  try{
+    if(actual==="estado"){
+      // Estado de TikTok
+      try{
+        const d=await (await fetch("/api/tiktok/estado",{cache:"no-store"})).json();
+        const p=$("#tt_dot");
+        if(p){
+          p.className="dot "+(d.en_directo?"live":d.estado==="iniciando"?"":d.estado==="error"?"err":"off");
+          $("#tt_est").textContent=d.en_directo?"¡En directo en TikTok!":d.estado==="iniciando"?"Conectando a TikTok...":d.estado==="error"?"Error al conectar":"Desconectado";
+          $("#tt_msg").textContent=(d.usuario?d.usuario+" · ":"")+(d.ultimo_error||(d.en_directo?"Directo activo":d.estado==="iniciando"?"Buscando live...":"Canal offline o desconectado"));
+          if(d.usuario && !$("#tt_canal").value) $("#tt_canal").value=d.usuario;
+          $("#btn_tt_conectar").hidden=d.en_directo||d.estado==="iniciando";
+          $("#btn_tt_desconectar").hidden=!(d.en_directo||d.estado==="iniciando");
+        }
+      }catch{}
+
+      // Estado de Kick
+      try{
+        const kd=await (await fetch("/api/kick/estado",{cache:"no-store"})).json();
+        const kp=$("#kick_dot");
+        kp.className="dot "+(kd.conectado?"live":kd.conectando?"":"off");
+        $("#kick_est").textContent=kd.conectado?"¡Conectado a Kick!":kd.conectando?"Conectando a Kick...":"Desconectado";
+        $("#kick_msg").textContent=(kd.canal?"@"+kd.canal+" · ":"")+(kd.mensaje||"");
+        if(kd.canal && !$("#kick_canal").value) $("#kick_canal").value=kd.canal;
+        $("#btn_kick_conectar").hidden=kd.conectado||kd.conectando;
+        $("#btn_kick_desconectar").hidden=!(kd.conectado||kd.conectando);
+      }catch{}
+
+      // Estado de Twitch
+      try{
+        const td=await (await fetch("/api/twitch/estado",{cache:"no-store"})).json();
+        const tp=$("#twitch_dot");
+        tp.className="dot "+(td.conectado?"live":td.conectando?"":"off");
+        $("#twitch_est").textContent=td.conectado?(td.en_directo?"¡En directo en Twitch!":"Conectado (Offline)"):td.conectando?"Conectando a Twitch...":"Desconectado";
+        $("#twitch_msg").textContent=(td.canal?"@"+td.canal+" · ":"")+(td.mensaje||"");
+        if(td.canal && !$("#twitch_canal").value) $("#twitch_canal").value=td.canal;
+        $("#btn_twitch_conectar").hidden=td.conectado||td.conectando;
+        $("#btn_twitch_desconectar").hidden=!(td.conectado||td.conectando);
+      }catch{}
+
+      // Estado de YouTube
+      try{
+        const yd=await (await fetch("/api/youtube/estado",{cache:"no-store"})).json();
+        const yp=$("#yt_dot");
+        yp.className="dot "+(yd.conectado?(yd.en_directo?"live":"") : yd.conectando?"":"off");
+        $("#yt_est").textContent=yd.conectado?(yd.en_directo?"¡En directo en YouTube!":"Conectado (Offline)"):yd.conectando?"Conectando a YouTube...":"Desconectado";
+        $("#yt_msg").textContent=(yd.canal?yd.canal+" · ":"")+(yd.mensaje||"");
+        if(yd.canal && !$("#yt_canal").value) $("#yt_canal").value=yd.canal;
+        $("#btn_yt_conectar").hidden=yd.conectado||yd.conectando;
+        $("#btn_yt_desconectar").hidden=!(yd.conectado||yd.conectando);
+      }catch{}
+
+      // Viewers
+      try {
+        const vd = await (await fetch("/api/viewers", {cache: "no-store"})).json();
+        if($("#kk_viewers")) $("#kk_viewers").textContent = (vd.kick||0).toLocaleString("es");
+        if($("#tw_viewers")) $("#tw_viewers").textContent = (vd.twitch||0).toLocaleString("es");
+        if($("#yt_viewers")) $("#yt_viewers").textContent = (vd.youtube||0).toLocaleString("es");
+        if($("#tt_viewers")) $("#tt_viewers").textContent = (vd.tiktok||0).toLocaleString("es");
+      }catch{}
+
+      // Fuentes OBS
+      const f=await (await fetch("/api/fuentes",{cache:"no-store"})).json();
+      if(f && f.length) {
+        $("#fuentes").textContent=f.map(x=>(x.ok?"🟢 ":"🔴 ")+x.n).join("      ");
+      } else {
+        $("#fuentes").textContent="Esperando señal… (haz visible la escena en OBS o pulsa Refrescar OBS)";
+      }
+
+      try {
+        const obsd = await (await fetch("/api/obs",{cache:"no-store"})).json();
+        const obsEst = obsd.estado || {};
+        if (obsEst.txt === "listo") {
+          $("#obs_info").textContent = "✓ OBS sincronizado: " + (obsEst.ultima || "fuentes al día");
+          $("#obs_info").style.color = "#53fc18";
+        } else if (obsEst.txt === "sin_obs" || obsEst.txt === "error") {
+          $("#obs_info").textContent = "OBS WebSocket: inactivo (actívalo en Herramientas → Ajustes de WebSocket si deseas auto-recarga).";
+          $("#obs_info").style.color = "#8da2c0";
+        }
+      } catch{}
+
+      // Estado IA Bulma & Goku
+      try{
+        const vd=await(await fetch("/api/voz",{cache:"no-store"})).json();
+        if(vd && vd.cfg){
+          actualizarUI_IA(Boolean(vd.cfg.bulma_activa));
+        }
+      }catch{}
+    }
+    if(actual==="logs"){const l=await (await fetch("/api/log",{cache:"no-store"})).json(); if(l.length) $("#log").textContent=l.slice().reverse().join("\n")}
+  }catch{}
+}
+
+function actualizarUI_IA(activa){
+  bulmaActivaActual = activa;
+  const badge = $("#ia_status_badge");
+  const btn = $("#btn_ia_toggle");
+  if(activa){
+    badge.textContent = "● ACTIVADA";
+    badge.style.color = "#35e879";
+    badge.style.background = "#35e87922";
+    badge.style.borderColor = "#35e87944";
+    btn.textContent = "Desactivar IA";
+    btn.style.background = "linear-gradient(120deg,#e02424,#b91c1c)";
+  } else {
+    badge.textContent = "○ DESACTIVADA";
+    badge.style.color = "#98a9c5";
+    badge.style.background = "#24365133";
+    badge.style.borderColor = "#24365166";
+    btn.textContent = "Activar IA";
+    btn.style.background = "linear-gradient(120deg,#00b4d8,#0077b6)";
+  }
+}
+
+$("#btn_ia_toggle").onclick = async () => {
+  const nuevoEstado = !bulmaActivaActual;
+  $("#btn_ia_toggle").disabled = true;
+  try{
+    const r = await fetch("/api/voz", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ bulma_activa: nuevoEstado })
+    });
+    if(r.ok){
+      actualizarUI_IA(nuevoEstado);
+    }
+  }catch(e){
+    alert("Error al cambiar estado de la IA: " + e);
+  }finally{
+    $("#btn_ia_toggle").disabled = false;
+  }
+};
+
+$("#btn_kick_conectar").onclick=async()=>{
+  const canal=$("#kick_canal").value.trim();
+  if(!canal) return alert("Escribe el nombre de tu canal de Kick.");
+  $("#btn_kick_conectar").disabled=true;
+  try{
+    const r=await fetch("/api/kick/conectar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({canal})});
+    const d=await r.json();
+    if(!d.ok) alert(d.mensaje);
+    refrescar();
+  }catch(e){
+    alert("Error al intentar conectar: "+e);
+  }finally{
+    $("#btn_kick_conectar").disabled=false;
+  }
+};
+
+$("#btn_kick_desconectar").onclick=async()=>{
+  await fetch("/api/kick/desconectar",{method:"POST"});
+  refrescar();
+};
+
+$("#btn_twitch_conectar").onclick=async()=>{
+  const canal=$("#twitch_canal").value.trim();
+  if(!canal) return alert("Escribe el nombre de tu canal de Twitch.");
+  $("#btn_twitch_conectar").disabled=true;
+  try{
+    const r=await fetch("/api/twitch/conectar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({canal})});
+    const d=await r.json();
+    if(!d.ok) alert(d.mensaje);
+    refrescar();
+  }catch(e){
+    alert("Error al intentar conectar a Twitch: "+e);
+  }finally{
+    $("#btn_twitch_conectar").disabled=false;
+  }
+};
+
+$("#btn_twitch_desconectar").onclick=async()=>{
+  await fetch("/api/twitch/desconectar",{method:"POST"});
+  refrescar();
+};
+
+$("#btn_yt_conectar").onclick=async()=>{
+  const canal=$("#yt_canal").value.trim();
+  if(!canal) return alert("Escribe el canal o @handle de YouTube.");
+  $("#btn_yt_conectar").disabled=true;
+  try{
+    const r=await fetch("/api/youtube/conectar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({canal})});
+    const d=await r.json();
+    if(!d.ok) alert(d.mensaje);
+    refrescar();
+  }catch(e){
+    alert("Error al intentar conectar a YouTube: "+e);
+  }finally{
+    $("#btn_yt_conectar").disabled=false;
+  }
+};
+
+$("#btn_yt_desconectar").onclick=async()=>{
+  await fetch("/api/youtube/desconectar",{method:"POST"});
+  refrescar();
+};
+
+$("#btn_tt_conectar").onclick=async()=>{
+  const usuario=$("#tt_canal").value.trim();
+  if(!usuario) return alert("Escribe tu usuario de TikTok.");
+  $("#btn_tt_conectar").disabled=true;
+  try{
+    const r=await fetch("/api/tiktok/conectar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({usuario})});
+    const d=await r.json();
+    if(!d.ok) alert(d.mensaje);
+    refrescar();
+  }catch(e){
+    alert("Error al intentar conectar a TikTok: "+e);
+  }finally{
+    $("#btn_tt_conectar").disabled=false;
+  }
+};
+
+$("#btn_tt_desconectar").onclick=async()=>{
+  await fetch("/api/tiktok/desconectar",{method:"POST"});
+  refrescar();
+};
+
+async function cargarPlataformas(){
+  try{
+    const d=await(await fetch("/api/plataformas",{cache:"no-store"})).json();
+    if(d.ok && d.plataformas){
+      $("#plat_kk").checked = d.plataformas.kick !== false;
+      $("#plat_tw").checked = d.plataformas.twitch !== false;
+      $("#plat_yt").checked = d.plataformas.youtube !== false;
+      $("#plat_tt").checked = Boolean(d.plataformas.tiktok);
+      $("#plat_ocultar_off").checked = Boolean(d.plataformas.ocultar_desconectadas);
+    }
+  }catch{}
+}
+
+async function guardarPlataformas(){
+  const cfg = {
+    tiktok: $("#plat_tt").checked,
+    kick: $("#plat_kk").checked,
+    twitch: $("#plat_tw").checked,
+    youtube: $("#plat_yt").checked,
+    ocultar_desconectadas: $("#plat_ocultar_off").checked,
+    mostrar_total: true
+  };
+  try{
+    const r = await fetch("/api/plataformas",{
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(cfg)
+    });
+    if(r.ok){
+      const st = $("#plat_save_status");
+      if(st){
+        st.textContent = "¡Configuración guardada en vivo!";
+        setTimeout(()=>st.textContent="", 2000);
+      }
+    }
+  }catch{}
+}
+
+function aplicarPresetPlat(tt, kk, tw, yt){
+  $("#plat_tt").checked = tt;
+  $("#plat_kk").checked = kk;
+  $("#plat_tw").checked = tw;
+  $("#plat_yt").checked = yt;
+  guardarPlataformas();
+}
+
+[$("#plat_tt"), $("#plat_kk"), $("#plat_tw"), $("#plat_yt"), $("#plat_ocultar_off")].forEach(e=>{
+  if(e) e.addEventListener("change", guardarPlataformas);
+});
+cargarPlataformas();
+
+const btnRecargarOBS = $("#btn_obs_recargar");
+if(btnRecargarOBS){
+  btnRecargarOBS.onclick = async () => {
+    btnRecargarOBS.disabled = true;
+    btnRecargarOBS.textContent = "Recargando...";
+    try {
+      await fetch("/api/obs/actualizar", {method: "POST"});
+    } catch(e) {}
+    setTimeout(() => {
+      btnRecargarOBS.disabled = false;
+      btnRecargarOBS.textContent = "Refrescar OBS";
+      refrescar();
+    }, 1200);
+  };
+}
+
+if(!document.getElementById(actual))actual="estado";
+ir(actual);
+
+$("#murl").textContent=location.origin+"/meta";
+async function cargarMeta(){try{const d=await(await fetch("/api/meta",{cache:"no-store"})).json();$("#mactive").checked=d.activa;$("#mtitle").value=d.titulo;$("#mcurrency").value=d.moneda;$("#mtarget").value=d.objetivo;$("#mraised").value=d.ahorrado}catch{}}
+$("#msave").onclick=async()=>{const d={activa:$("#mactive").checked,titulo:$("#mtitle").value,moneda:$("#mcurrency").value,objetivo:+$("#mtarget").value,ahorrado:+$("#mraised").value};try{const r=await fetch("/api/meta",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)});if(!r.ok)throw 0;$("#mmsg").textContent="Guardado ✓";setTimeout(()=>$("#mmsg").textContent="",2200)}catch{$("#mmsg").textContent="Revisa objetivo y cantidad ahorrada."}};
+$("#mcopy").onclick=()=>navigator.clipboard.writeText($("#murl").textContent);
+cargarMeta();
+
+setInterval(refrescar,4000); refrescar();
+</script></body></html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><script src="/static/flujo.js"></script><title>VIP (OBS)</title>
+<link rel="stylesheet" href="/static/vip.css">
+<style>
+html,body{margin:0;background:transparent;overflow:hidden}
+#w{position:fixed;left:50%;transform:translateX(-50%);display:none;will-change:transform,opacity}
+#w.arriba{top:0}#w.abajo{bottom:0}#w.centro{top:50%;transform:translate(-50%,-50%)}
+video{width:100%;max-height:100vh;display:block}
+</style></head><body>
+<div id="fx" aria-hidden="true"></div><div id="w"><video id="v" playsinline></video></div>
+<div class="vb abajo" id="b"><div class="vbi" id="bi"><div class="vbn" id="bn"></div><div class="vbm" id="bm"></div></div></div>
+<script>
+// OBS: /vip (tamaño de la fuente = tamaño del lienzo). Todo el estilo se cambia en el panel.
+// El servidor guarda la cola de alertas; este overlay pide una cuando está libre.
+const $=i=>document.getElementById(i), w=$("w"), v=$("v"), b=$("b"), bi=$("bi"), fx=$("fx");
+let cfg={tam:100,pos:"centro",max:15,seg_texto:6,animacion:"zoom"}, ocupado=false, actual=null, boot=null, inicioOcupado=0;
+
+async function cargar(){
+  try{cfg=await (await fetch("/api/vip?solo=cfg",{cache:"no-store"})).json()}catch{return}
+  const s=document.documentElement.style;
+  s.setProperty("--f",cfg.fuente?JSON.stringify(cfg.fuente)+",":"");
+  s.setProperty("--cn",cfg.color_nombre||"#ffd45e"); s.setProperty("--cm",cfg.color_mensaje||"#ffffff"); s.setProperty("--cb",cfg.color_borde||"#000000");
+  s.setProperty("--tn",(cfg.tam_nombre||64)+"px"); s.setProperty("--tm",(cfg.tam_mensaje||32)+"px");
+  s.setProperty("--bg",cfg.fondo?(cfg.color_fondo||"#000000")+"c0":"transparent");
+  w.style.width=(cfg.tam||100)+"%"; w.className=cfg.pos||"centro"; b.className="vb "+(cfg.texto_pos||"abajo");
+}
+
+function banner(d){
+  $("bn").hidden=!cfg.mostrar_nombre; $("bn").textContent=d.n||"";
+  $("bm").hidden=!d.m; $("bm").textContent=d.m||"";
+  bi.style.setProperty("--cn",d.c||cfg.color_nombre||"#ffd45e");
+  bi.className="vbi"; void bi.offsetWidth; // reinicia la animación
+  bi.className="vbi a-"+(cfg.animacion||"zoom")+(cfg.brillo?" brillo":"");
+  b.style.display="flex";
+}
+
+async function pedir(){
+  if(ocupado) return;
+  let a=null;
+  try{
+    const r=await fetch("/api/vip/siguiente",{method:"POST",cache:"no-store"});
+    if(r.ok){
+      const d=await r.json();
+      a=d.alerta;
+    }
+  }catch(e){}
+  if(a){
+    ocupado=true;
+    inicioOcupado=Date.now();
+    reproducir(a);
+  }else{
+    ocupado=false;
+  }
+}
+
+function reproducir(d){
+  if(cfg.efecto_entrada&&cfg.efecto_entrada!=="ninguno"){
+    fx.className=""; void fx.offsetWidth; fx.className="fx fx-"+cfg.efecto_entrada;
+    setTimeout(()=>fx.className="",750);
+  }
+  actual=d;
+  let t=0, ini=0;
+
+  const limpiar=()=>{
+    clearTimeout(t); clearTimeout(ini);
+    t=0; ini=0;
+    v.onended=v.onerror=v.onplaying=null;
+    try{v.pause()}catch(e){}
+    v.removeAttribute("src");
+    try{v.load()}catch(e){}
+  };
+
+  const fin=()=>{
+    actual=null;
+    limpiar();
+    w.style.display="none";
+    bi.classList.add("sal");
+    setTimeout(()=>{
+      b.style.display="none";
+      bi.className="vbi";
+      ocupado=false;
+      pedir();
+    },320);
+  };
+
+  const soloTexto=()=>{
+    limpiar();
+    w.style.display="none";
+    banner(d);
+    t=setTimeout(fin, Math.max(2, (Number(cfg.seg_texto)||6)) * 1000);
+  };
+
+  if(!d.u){
+    soloTexto();
+    return;
+  }
+
+  // Tiempo límite máximo total para este VIP
+  const maxSeg = Math.max(3, Math.min(30, Number(cfg.max) || 15));
+  t = setTimeout(fin, maxSeg * 1000);
+
+  // Si en 1.8 s el video no arrancó (fallo o demora de decodificador en OBS), pasar a tarjeta de texto
+  ini = setTimeout(()=>{
+    if(w.style.display!=="block") soloTexto();
+  }, 1800);
+
+  v.onended=fin;
+  v.onerror=soloTexto;
+  v.onplaying=()=>{
+    clearTimeout(ini);
+    w.style.display="block";
+    banner(d);
+  };
+
+  const silenciado = Boolean(cfg.silenciar_video || d.silenciar_video || d.v === 0);
+  v.muted = silenciado;
+  v.volume = silenciado ? 0 : ((d.v !== undefined && d.v !== null) ? d.v : 0.8);
+  v.src = d.u;
+  v.play().catch(()=>{
+    v.muted = true;
+    v.play().catch(soloTexto);
+  });
+}
+
+const es=new Flujo("vip");
+es.addEventListener("vip",pedir);
+es.addEventListener("vip_cfg",cargar);
+es.onopen=async()=>{await cargar();await pedir()};
+
+// Watchdog de seguridad anti-bloqueo:
+setInterval(()=>{
+  if(ocupado && Date.now() - inicioOcupado > 25000){
+    ocupado=false;
+    try{v.pause();v.removeAttribute("src");v.load()}catch(e){}
+    w.style.display="none";
+    b.style.display="none";
+    bi.className="vbi";
+    pedir();
+  } else if(!ocupado){
+    pedir();
+  }
+}, 4000);
+
+es.addEventListener("boot",e=>{const x=JSON.parse(e.data).id;if(boot&&boot!==x)location.reload();boot=x});
+</script></body></html>

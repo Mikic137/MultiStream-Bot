@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script src="/static/flujo.js"></script>
+<title>Contador de Viewers (OBS)</title>
+<style>
+  :root {
+    --bg: rgba(11, 18, 32, 0.88);
+    --border: rgba(255, 255, 255, 0.14);
+    --tt-color: #00f2fe;
+    --tt-glow: rgba(0, 242, 254, 0.35);
+    --kick-color: #53fc18;
+    --kick-glow: rgba(83, 252, 24, 0.35);
+    --twitch-color: #a970ff;
+    --twitch-glow: rgba(169, 112, 255, 0.4);
+    --yt-color: #ff334b;
+    --yt-glow: rgba(255, 0, 0, 0.4);
+    --total-color: #ffd45e;
+    --total-glow: rgba(255, 212, 94, 0.35);
+    --txt: #ffffff;
+    --mut: #8da2c0;
+    --scale: 1;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    color: var(--txt);
+    user-select: none;
+  }
+
+  .contenedor {
+    padding: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transform-origin: top left;
+    transform: scale(var(--scale));
+  }
+
+  .contenedor.vertical {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 999px;
+    padding: 6px 14px 6px 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s ease;
+  }
+
+  .chip:hover {
+    transform: translateY(-2px);
+  }
+
+  .chip-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* TikTok */
+  .chip.tiktok {
+    border-color: rgba(0, 242, 254, 0.25);
+  }
+  .chip.tiktok .chip-icon {
+    background: linear-gradient(135deg, #010101, #121212);
+    box-shadow: 0 0 12px var(--tt-glow);
+  }
+  .chip.tiktok .val {
+    color: #fff;
+    text-shadow: 0 0 10px var(--tt-glow);
+  }
+
+  /* Kick */
+  .chip.kick {
+    border-color: rgba(83, 252, 24, 0.25);
+  }
+  .chip.kick .chip-icon {
+    background: #0b0e14;
+    border: 1px solid rgba(83, 252, 24, 0.4);
+    box-shadow: 0 0 12px var(--kick-glow);
+  }
+  .chip.kick .val {
+    color: var(--kick-color);
+    text-shadow: 0 0 10px var(--kick-glow);
+  }
+
+  /* Twitch */
+  .chip.twitch {
+    border-color: rgba(169, 112, 255, 0.28);
+  }
+  .chip.twitch .chip-icon {
+    background: #18141f;
+    border: 1px solid rgba(169, 112, 255, 0.45);
+    box-shadow: 0 0 12px var(--twitch-glow);
+  }
+  .chip.twitch .val {
+    color: var(--twitch-color);
+    text-shadow: 0 0 10px var(--twitch-glow);
+  }
+
+  /* YouTube */
+  .chip.youtube {
+    border-color: rgba(255, 0, 0, 0.28);
+  }
+  .chip.youtube .chip-icon {
+    background: #18090a;
+    border: 1px solid rgba(255, 50, 50, 0.45);
+    box-shadow: 0 0 12px var(--yt-glow);
+  }
+  .chip.youtube .val {
+    color: var(--yt-color);
+    text-shadow: 0 0 10px var(--yt-glow);
+  }
+
+  /* Total */
+  .chip.total {
+    border-color: rgba(255, 212, 94, 0.3);
+    background: linear-gradient(135deg, rgba(25, 20, 10, 0.9), rgba(15, 24, 40, 0.9));
+  }
+  .chip.total .chip-icon {
+    background: rgba(255, 212, 94, 0.15);
+    color: var(--total-color);
+  }
+  .chip.total .val {
+    color: var(--total-color);
+    text-shadow: 0 0 10px var(--total-glow);
+  }
+
+  .datos {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+
+  .lbl {
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--mut);
+  }
+
+  .val {
+    font-size: 19px;
+    font-weight: 900;
+    font-family: Consolas, "Courier New", monospace;
+    letter-spacing: -0.02em;
+    transition: color 0.3s ease;
+  }
+
+  .val.cambio {
+    animation: pulso 0.4s ease;
+  }
+
+  .dot-live {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #53fc18;
+    box-shadow: 0 0 8px #53fc18;
+    display: inline-block;
+    margin-right: 3px;
+  }
+
+  .dot-off {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #5a6e85;
+    display: inline-block;
+    margin-right: 3px;
+  }
+
+  @keyframes pulso {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.18); color: #fff; }
+    100% { transform: scale(1); }
+  }
+
+  /* Modos de estilo */
+  body.tema-glow .chip {
+    border-width: 2px;
+  }
+  body.tema-minimal .chip {
+    background: rgba(0,0,0,0.65);
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  body.tamano-grande { --scale: 1.35; }
+  body.tamano-pequeno { --scale: 0.85; }
+</style>
+</head>
+<body>
+
+<div class="contenedor" id="contenedor">
+  <!-- TikTok -->
+  <div class="chip tiktok" id="chip-tiktok">
+    <div class="chip-icon">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+        <path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.58 2.6 2.6 2.6 0 0 1-2.6-2.6 2.6 2.6 0 0 1 2.6-2.6c.33 0 .64.06.93.18V9.65a5.75 5.75 0 0 0-.93-.08 5.73 5.73 0 0 0-5.73 5.73 5.73 5.73 0 0 0 5.73 5.73 5.73 5.73 0 0 0 5.73-5.73V8.07a7.41 7.41 0 0 0 4.39 1.43V6.36a4.27 4.27 0 0 1-3.38-.54z" fill="#00f2fe"/>
+        <path d="M19.98 6.36v3.14a7.41 7.41 0 0 1-4.39-1.43v5.23a5.73 5.73 0 0 1-5.73 5.73c-.32 0-.63-.03-.94-.08a5.73 5.73 0 0 0 5.17-5.65V3h3.09a4.278 4.278 0 0 0 1.06 2.82 4.27 4.27 0 0 0 1.74.54z" fill="#fe0979"/>
+      </svg>
+    </div>
+    <div class="datos">
+      <span class="lbl"><span id="dot-tiktok" class="dot-off"></span>TikTok</span>
+      <span class="val" id="val-tiktok">0</span>
+    </div>
+  </div>
+
+  <!-- Kick -->
+  <div class="chip kick" id="chip-kick">
+    <div class="chip-icon">
+      <!-- Icono K de Kick -->
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#53fc18">
+        <path d="M3 2h6v7l4-7h8l-7.5 10L21 22h-8l-4-7v7H3V2z"/>
+      </svg>
+    </div>
+    <div class="datos">
+      <span class="lbl"><span id="dot-kick" class="dot-off"></span>Kick</span>
+      <span class="val" id="val-kick">0</span>
+    </div>
+  </div>
+
+  <!-- Twitch -->
+  <div class="chip twitch" id="chip-twitch">
+    <div class="chip-icon">
+      <!-- Icono Twitch -->
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="#a970ff">
+        <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/>
+      </svg>
+    </div>
+    <div class="datos">
+      <span class="lbl"><span id="dot-twitch" class="dot-off"></span>Twitch</span>
+      <span class="val" id="val-twitch">0</span>
+    </div>
+  </div>
+
+  <!-- YouTube -->
+  <div class="chip youtube" id="chip-youtube">
+    <div class="chip-icon">
+      <!-- Icono YouTube -->
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="#ff0000">
+        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+      </svg>
+    </div>
+    <div class="datos">
+      <span class="lbl"><span id="dot-youtube" class="dot-off"></span>YouTube</span>
+      <span class="val" id="val-youtube">0</span>
+    </div>
+  </div>
+
+  <!-- Total -->
+  <div class="chip total" id="chip-total">
+    <div class="chip-icon">
+      <!-- Icono Ojo / En Vivo -->
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffd45e" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    </div>
+    <div class="datos">
+      <span class="lbl">Total</span>
+      <span class="val" id="val-total">0</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = i => document.getElementById(i);
+const params = new URLSearchParams(location.search);
+
+// Parámetros de personalización en OBS
+if (params.get("pos") === "vertical" || params.get("direccion") === "vertical") {
+  $("contenedor").classList.add("vertical");
+}
+if (params.get("tema")) {
+  document.body.classList.add("tema-" + params.get("tema"));
+}
+if (params.get("tamano")) {
+  document.body.classList.add("tamano-" + params.get("tamano"));
+}
+
+let ultimos = { tiktok: -1, kick: -1, twitch: -1, youtube: -1, total: -1 };
+
+function animar(el, valor, clave) {
+  const num = parseInt(valor) || 0;
+  if (ultimos[clave] !== num) {
+    el.textContent = num.toLocaleString("es");
+    if (ultimos[clave] !== -1) {
+      el.classList.remove("cambio");
+      void el.offsetWidth; // retrigger anim
+      el.classList.add("cambio");
+    }
+    ultimos[clave] = num;
+  }
+}
+
+function aplicarDatos(d) {
+  if (!d) return;
+
+  const cfg = d.plataformas || { tiktok: false, kick: true, twitch: true, youtube: true, ocultar_desconectadas: false, mostrar_total: true };
+
+  // 1. Filtrado de plataformas según URL (?plataformas=kick,twitch,youtube o ?tiktok=0, etc.) o config del panel
+  let pLista = null;
+  if (params.get("plataformas")) {
+    pLista = params.get("plataformas").toLowerCase().split(",").map(s => s.trim());
+  }
+
+  const ttActiva = (pLista ? pLista.includes("tiktok") : cfg.tiktok) && params.get("tiktok") !== "0" && params.get("tiktok") !== "false";
+  const kkActiva = (pLista ? pLista.includes("kick") : cfg.kick) && params.get("kick") !== "0" && params.get("kick") !== "false";
+  const twActiva = (pLista ? pLista.includes("twitch") : cfg.twitch) && params.get("twitch") !== "0" && params.get("twitch") !== "false";
+  const ytActiva = (pLista ? pLista.includes("youtube") : cfg.youtube) && params.get("youtube") !== "0" && params.get("youtube") !== "false";
+
+  // Ocultar si está desconectada
+  const ocultarOff = (params.get("ocultar_offline") === "1" || params.get("ocultar_offline") === "true") || (Boolean(cfg.ocultar_desconectadas) && params.get("ocultar_offline") !== "0");
+
+  const ttConectado = Boolean(d.tiktok_conectado || d.tiktok_en_directo);
+  const kkConectado = Boolean(d.kick_conectado || d.kick_en_directo);
+  const twConectado = Boolean(d.twitch_conectado || d.twitch_en_directo);
+  const ytConectado = Boolean(d.youtube_conectado || d.youtube_en_directo);
+
+  const ttVisible = ttActiva && (!ocultarOff || ttConectado);
+  const kkVisible = kkActiva && (!ocultarOff || kkConectado);
+  const twVisible = twActiva && (!ocultarOff || twConectado);
+  const ytVisible = ytActiva && (!ocultarOff || ytConectado);
+
+  $("chip-tiktok").style.display = ttVisible ? "inline-flex" : "none";
+  $("chip-kick").style.display = kkVisible ? "inline-flex" : "none";
+  $("chip-twitch").style.display = twVisible ? "inline-flex" : "none";
+  $("chip-youtube").style.display = ytVisible ? "inline-flex" : "none";
+
+  const tt = parseInt(d.tiktok) || 0;
+  const kk = parseInt(d.kick) || 0;
+  const tw = parseInt(d.twitch) || 0;
+  const yt = parseInt(d.youtube) || 0;
+
+  // Total dinámico calculado según las plataformas activas
+  let totalCalc = 0;
+  let visiblesCount = 0;
+  if (ttVisible) { totalCalc += tt; visiblesCount++; }
+  if (kkVisible) { totalCalc += kk; visiblesCount++; }
+  if (twVisible) { totalCalc += tw; visiblesCount++; }
+  if (ytVisible) { totalCalc += yt; visiblesCount++; }
+
+  // Regla para chip Total: ocultar si total=0 o total=false en URL, o si mostrar_total=false, o si solo hay 1 o 0 activas
+  const permitirTotal = (params.get("total") !== "0" && params.get("total") !== "false") && (cfg.mostrar_total !== false);
+  const forzarTotal = params.get("forzar_total") === "1";
+  $("chip-total").style.display = (permitirTotal && (visiblesCount > 1 || forzarTotal)) ? "inline-flex" : "none";
+
+  animar($("val-tiktok"), tt, "tiktok");
+  animar($("val-kick"), kk, "kick");
+  animar($("val-twitch"), tw, "twitch");
+  animar($("val-youtube"), yt, "youtube");
+  animar($("val-total"), totalCalc, "total");
+
+  $("dot-tiktok").className = ttConectado ? "dot-live" : "dot-off";
+  $("dot-kick").className = kkConectado ? "dot-live" : "dot-off";
+  $("dot-twitch").className = twConectado ? "dot-live" : "dot-off";
+  $("dot-youtube").className = ytConectado ? "dot-live" : "dot-off";
+}
+
+async function refrescar() {
+  try {
+    const res = await fetch("/api/viewers", { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      aplicarDatos(data);
+    }
+  } catch (err) {}
+}
+
+// Conectar con el flujo de eventos
+const flujo = new Flujo("viewers_obs", 2500);
+flujo.addEventListener("viewers", e => {
+  try {
+    const d = JSON.parse(e.data);
+    aplicarDatos(d);
+  } catch(err) {}
+});
+
+flujo.onopen = refrescar;
+refrescar();
+setInterval(refrescar, 3500);
+</script>
+</body>
+</html>

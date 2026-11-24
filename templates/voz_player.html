@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script src="/static/flujo.js"></script>
+<title>Voz y Bulma VIP (OBS)</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #fff;
+    user-select: none;
+  }
+
+  /* Burbuja visual de Bulma VIP */
+  #bulma-box {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    max-width: 480px;
+    background: linear-gradient(135deg, rgba(8, 22, 38, 0.94), rgba(14, 34, 58, 0.96));
+    border: 2px solid #00e5ff;
+    border-radius: 18px;
+    padding: 14px 18px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 229, 255, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  #bulma-box.on {
+    display: flex;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .bulma-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .capsule-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00e5ff, #0077b6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+    flex-shrink: 0;
+  }
+
+  .capsule-badge svg {
+    width: 20px;
+    height: 20px;
+    fill: #fff;
+  }
+
+  .bulma-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .bulma-tag {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #00e5ff;
+    text-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .vip-author {
+    font-size: 16px;
+    font-weight: 900;
+    color: #ffd45e;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .audio-ondas {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 12px;
+  }
+
+  .audio-onda {
+    width: 3px;
+    height: 100%;
+    background: #00e5ff;
+    border-radius: 2px;
+    animation: ondaAnim 0.7s infinite alternate ease-in-out;
+  }
+  .audio-onda:nth-child(2) { animation-delay: 0.15s; }
+  .audio-onda:nth-child(3) { animation-delay: 0.3s; }
+  .audio-onda:nth-child(4) { animation-delay: 0.45s; }
+
+  @keyframes ondaAnim {
+    from { height: 3px; }
+    to { height: 12px; }
+  }
+
+  .bulma-texto {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1.35;
+    text-shadow: 1px 1px 2px #000;
+    word-break: break-word;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 8px 12px;
+    border-radius: 10px;
+    border-left: 3px solid #00e5ff;
+  }
+</style>
+</head>
+<body>
+
+<div id="bulma-box">
+  <div class="bulma-header">
+    <div class="capsule-badge" id="voz-badge" title="Voz IA">
+      <span id="voz-emoji" style="font-size: 19px; line-height: 1;">🌸</span>
+    </div>
+    <div class="bulma-meta">
+      <div class="bulma-tag">
+        <span id="voz-tag-txt">🌸 BULMA (VOZ IA)</span>
+        <div class="audio-ondas">
+          <div class="audio-onda"></div>
+          <div class="audio-onda"></div>
+          <div class="audio-onda"></div>
+          <div class="audio-onda"></div>
+        </div>
+      </div>
+      <div class="vip-author" id="vip-name">VIP</div>
+    </div>
+  </div>
+  <div class="bulma-texto" id="bulma-txt"></div>
+</div>
+
+<script>
+let a = null;
+let tCerrarBulma = 0;
+const fin = () => fetch("/api/voz/fin", { method: "POST" }).catch(() => {});
+const bBox = document.getElementById("bulma-box");
+const bName = document.getElementById("vip-name");
+const bTxt = document.getElementById("bulma-txt");
+
+function ocultarBulma() {
+  clearTimeout(tCerrarBulma);
+  bBox.classList.remove("on");
+}
+
+function detener() {
+  ocultarBulma();
+  if (a) {
+    const x = a;
+    a = null;
+    x.pause();
+  }
+}
+
+function sonar(d) {
+  detener();
+
+  if (d.bulma || d.voz_ia) {
+    const col = d.color || "#00e5ff";
+    const nomPers = d.personaje || "Bulma";
+    const emoj = d.emoji || "🌸";
+    const tag = d.tag || `${emoj} ${nomPers.toUpperCase()} (VOZ IA)`;
+
+    bName.textContent = "★ " + (d.nombre || "VIP");
+    bTxt.textContent = d.texto || "";
+    
+    document.getElementById("voz-emoji").textContent = emoj;
+    document.getElementById("voz-tag-txt").textContent = tag;
+    document.getElementById("voz-tag-txt").style.color = col;
+    
+    bBox.style.borderColor = col;
+    bBox.style.boxShadow = `0 16px 36px rgba(0, 0, 0, 0.6), 0 0 25px ${col}66`;
+    bTxt.style.borderLeftColor = col;
+    
+    const badge = document.getElementById("voz-badge");
+    badge.style.background = `linear-gradient(135deg, ${col}, #000)`;
+    badge.style.boxShadow = `0 0 10px ${col}99`;
+    
+    document.querySelectorAll(".audio-onda").forEach(el => el.style.background = col);
+
+    bBox.classList.add("on");
+  }
+
+  const mia = new Audio(d.u);
+  a = mia;
+  mia.volume = d.v == null ? 1 : Math.max(0, Math.min(1, d.v));
+
+  mia.onended = mia.onerror = () => {
+    if (a === mia) {
+      a = null;
+      if (d.bulma || d.voz_ia) {
+        tCerrarBulma = setTimeout(ocultarBulma, 600);
+      }
+      fin();
+    }
+  };
+
+  mia.play().catch(() => {
+    if (a === mia) {
+      a = null;
+      ocultarBulma();
+      fin();
+    }
+  });
+}
+
+const es = new Flujo("voz");
+let boot = null;
+es.addEventListener("boot", e => {
+  const b = JSON.parse(e.data).id;
+  if (boot && boot !== b) location.reload();
+  boot = b;
+});
+es.addEventListener("voz_audio", e => sonar(JSON.parse(e.data)));
+es.addEventListener("voz_stop", detener);
+
+const latido = () => fetch("/api/voz/latido?p=obs", { method: "POST" }).catch(() => {});
+setInterval(latido, 5000);
+latido();
+</script>
+</body>
+</html>

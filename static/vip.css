@@ -1,0 +1,33 @@
+/* Tarjeta de bienvenida VIP (la usan /vip y la vista previa del panel) */
+.vb{position:fixed;left:0;right:0;display:none;justify-content:center;pointer-events:none;will-change:transform,opacity;transform:translateZ(0)}
+.vb.abajo{bottom:8%}.vb.arriba{top:8%}.vb.centro{top:50%;transform:translateY(-50%)}
+.vbi{max-width:90%;text-align:center;padding:12px 26px;border-radius:16px;background:var(--bg,transparent);
+  font-family:var(--f) "Segoe UI",Arial,sans-serif;font-weight:800;line-height:1.15;word-break:break-word;
+  will-change:transform,opacity;transform:translateZ(0)}
+.vbn,.vbm{text-shadow:-2px -2px 0 var(--cb,#000),2px -2px 0 var(--cb,#000),-2px 2px 0 var(--cb,#000),2px 2px 0 var(--cb,#000),0 4px 10px #000a}
+.vbn{font-size:var(--tn,64px);color:var(--cn,#ffd45e)}
+.vbm{font-size:var(--tm,32px);color:var(--cm,#fff);margin-top:6px}
+.a-fade{animation:vb-fade .5s both}.a-subir{animation:vb-subir .6s ease-out both}.a-zoom{animation:vb-zoom .6s both}
+.a-rebote{animation:vb-rebote 1s both}.a-deslizar{animation:vb-deslizar .6s ease-out both}
+.vbi.sal{animation:vb-salir .28s ease-in forwards !important}
+.brillo .vbn{animation:vb-brillo 1.3s ease-in-out infinite}
+#fx{position:fixed;inset:0;z-index:20;pointer-events:none;overflow:hidden;will-change:opacity}
+.fx::before,.fx::after{content:"";position:absolute;inset:0;opacity:0}
+.fx-destello::before{background:radial-gradient(ellipse at center,transparent 24%,#fff7b8 54%,#ff9a2870 68%,transparent 78%);animation:fx-flash .65s ease-out both}
+.fx-rayos::before{inset:-20%;background:linear-gradient(113deg,transparent 42%,#b9f7ff 43% 44%,#fff 45% 46%,transparent 47%),linear-gradient(68deg,transparent 49%,#ffe783 50% 51%,transparent 52%);clip-path:polygon(0 0,100% 0,100% 100%,0 100%);animation:fx-bolt .6s steps(4,end) both}
+.fx-rayos::after{inset:20%;border:5px solid #fff7b8;clip-path:polygon(49% 0,56% 0,46% 36%,60% 36%,35% 100%,43% 52%,30% 52%);background:#86edff;filter:drop-shadow(0 0 8px #fff);animation:fx-zap .55s steps(3,end) both}
+.fx-explosion::before{inset:12%;background:radial-gradient(circle,#fffbd0 0 5%,#ffe15d 6% 12%,#ff7b29 13% 20%,#d62f72 21% 25%,transparent 26%);image-rendering:pixelated;animation:fx-pixel .65s steps(5,end) both}
+.fx-explosion::after{inset:26%;background:conic-gradient(from 8deg,transparent 0 7%,#ffe879 7% 10%,transparent 10% 19%,#ff7738 19% 22%,transparent 22% 34%,#fff0a2 34% 37%,transparent 37% 52%,#fb7339 52% 55%,transparent 55% 70%,#ffe879 70% 73%,transparent 73%);animation:fx-burst .7s steps(5,end) both}
+@keyframes fx-flash{0%{opacity:0;transform:scale(.2)}22%{opacity:.8}100%{opacity:0;transform:scale(1.4)}}
+@keyframes fx-bolt{0%{opacity:0;transform:translateX(-8%) scale(.85)}25%,55%{opacity:.9}100%{opacity:0;transform:translateX(5%) scale(1.08)}}
+@keyframes fx-zap{0%,100%{opacity:0}30%,60%{opacity:.9}45%{opacity:.2}}
+@keyframes fx-pixel{0%{opacity:0;transform:scale(.1)}35%{opacity:.9;transform:scale(.65)}100%{opacity:0;transform:scale(1.35)}}
+@keyframes fx-burst{0%{opacity:0;transform:scale(.1) rotate(0)}20%{opacity:1}100%{opacity:0;transform:scale(1.3) rotate(45deg)}}
+@media(prefers-reduced-motion:reduce){.fx::before,.fx::after{animation-duration:.15s!important}}
+@keyframes vb-fade{from{opacity:0}to{opacity:1}}
+@keyframes vb-subir{from{opacity:0;transform:translateY(60px)}to{opacity:1;transform:none}}
+@keyframes vb-zoom{0%{opacity:0;transform:scale(.3)}70%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+@keyframes vb-rebote{0%{opacity:0;transform:translateY(-160px)}50%{opacity:1;transform:translateY(0)}65%{transform:translateY(-34px)}80%{transform:translateY(0)}90%{transform:translateY(-10px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes vb-deslizar{from{opacity:0;transform:translateX(-160px)}to{opacity:1;transform:none}}
+@keyframes vb-salir{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(0.9)}}
+@keyframes vb-brillo{0%,100%{filter:drop-shadow(0 0 4px var(--cn,#ffd45e))}50%{filter:drop-shadow(0 0 16px var(--cn,#ffd45e))}}

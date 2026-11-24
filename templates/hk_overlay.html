@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Hollow Knight - Overlay OBS Stream</title>
+<style>
+:root {
+  --bg: rgba(10, 14, 23, 0.92);
+  --border: #1e293b;
+  --txt: #f8fafc;
+  --mut: #94a3b8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: transparent;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--txt);
+  overflow: hidden;
+  user-select: none;
+  padding: 10px;
+}
+
+.overlay-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 1900px;
+  margin: 0 auto;
+}
+
+.header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 8px 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #38bdf8;
+  text-transform: uppercase;
+}
+
+.header-badge {
+  background: #e11d48;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.enemy-card {
+  position: relative;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(10px);
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.enemy-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--card-color, #38bdf8);
+}
+
+.sprite-box {
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sprite-box img {
+  max-width: 52px;
+  max-height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8));
+}
+
+.enemy-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.enemy-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--card-color, #fff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+.cmd-badge {
+  display: inline-block;
+  background: #090d16;
+  border: 1px solid var(--card-color, #38bdf8);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-family: 'Consolas', monospace;
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  margin: 4px 0;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
+}
+
+.status-pill {
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-ready {
+  color: #4ade80;
+}
+
+.status-cd {
+  color: #f87171;
+  font-weight: 800;
+}
+
+/* Colores temáticos */
+.card-debiles { --card-color: #fb923c; }
+.card-medianos { --card-color: #4ade80; }
+.card-vasija { --card-color: #38bdf8; }
+.card-grimm { --card-color: #f43f5e; }
+.card-destello { --card-color: #fbbf24; }
+
+/* Barra de progreso de cooldown */
+.cd-progress {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 3px;
+  background: var(--card-color, #38bdf8);
+  width: 0%;
+  transition: width 0.5s linear;
+}
+</style>
+</head>
+<body>
+
+<div class="overlay-container">
+  <div class="header-bar">
+    <div class="header-title">
+      <span>⚔️ Invocaciones en Vivo</span>
+      <span style="color:#94a3b8;font-weight:400;font-size:13px;">| Escribe el comando en el chat de TikTok</span>
+    </div>
+    <div class="header-badge">
+      <span>●</span> TIKTOK LIVE
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <!-- DÉBILES -->
+    <div class="enemy-card card-debiles" id="card_enemigos_debiles">
+      <div class="sprite-box">
+        <img src="/static/hk_assets/aspid_hunter.png" alt="Áspid">
+      </div>
+      <div class="enemy-info">
+        <div class="enemy-name">Áspid (x3)</div>
+        <div class="cmd-badge">!debil</div>
+        <div class="status-pill status-ready" id="st_enemigos_debiles">✨ LISTO (15s)</div>
+      </div>
+      <div class="cd-progress" id="bar_enemigos_debiles"></div>
+    </div>
+
+    <!-- MEDIANOS -->
+    <div class="enemy-card card-medianos" id="card_enemigos_medianos">
+      <div class="sprite-box">
+        <img src="/static/hk_assets/moss_knight.png" alt="Caballero">
+      </div>
+      <div class="enemy-info">
+        <div class="enemy-name">Musgo (x2)</div>
+        <div class="cmd-badge">!mediano</div>
+        <div class="status-pill status-ready" id="st_enemigos_medianos">✨ LISTO (30s)</div>
+      </div>
+      <div class="cd-progress" id="bar_enemigos_medianos"></div>
+    </div>
+
+    <!-- VASIJA PURA -->
+    <div class="enemy-card card-vasija" id="card_vasija_pura">
+      <div class="sprite-box">
+        <img src="/static/hk_assets/pure_vessel.png" alt="Vasija Pura">
+      </div>
+      <div class="enemy-info">
+        <div class="enemy-name">Vasija Pura</div>
+        <div class="cmd-badge">!vasija</div>
+        <div class="status-pill status-ready" id="st_vasija_pura">✨ LISTO (60s)</div>
+      </div>
+      <div class="cd-progress" id="bar_vasija_pura"></div>
+    </div>
+
+    <!-- GRIMM -->
+    <div class="enemy-card card-grimm" id="card_grimm">
+      <div class="sprite-box">
+        <img src="/static/hk_assets/nightmare_king.png" alt="Grimm">
+      </div>
+      <div class="enemy-info">
+        <div class="enemy-name">Pesadilla Grimm</div>
+        <div class="cmd-badge">!grimm</div>
+        <div class="status-pill status-ready" id="st_grimm">✨ LISTO (60s)</div>
+      </div>
+      <div class="cd-progress" id="bar_grimm"></div>
+    </div>
+
+    <!-- DESTELLO ABSOLUTO -->
+    <div class="enemy-card card-destello" id="card_destello_absoluto">
+      <div class="sprite-box">
+        <img src="/static/hk_assets/radiance.png" alt="Destello">
+      </div>
+      <div class="enemy-info">
+        <div class="enemy-name">Destello Abs.</div>
+        <div class="cmd-badge">!destello</div>
+        <div class="status-pill status-ready" id="st_destello_absoluto">✨ LISTO (90s)</div>
+      </div>
+      <div class="cd-progress" id="bar_destello_absoluto"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function actualizarOverlay() {
+  try {
+    const res = await fetch('/api/hk/estado');
+    if (!res.ok) return;
+    const data = await res.json();
+    const cds = data.cooldowns || {};
+
+    for (const [key, info] of Object.entries(cds)) {
+      const stEl = document.getElementById('st_' + key);
+      const barEl = document.getElementById('bar_' + key);
+      if (!stEl || !barEl) continue;
+
+      if (info.listo) {
+        stEl.className = 'status-pill status-ready';
+        stEl.innerHTML = `✨ LISTO (${info.cooldown_total}s)`;
+        barEl.style.width = '0%';
+      } else {
+        stEl.className = 'status-pill status-cd';
+        stEl.innerHTML = `⏳ Espera ${Math.ceil(info.restante)}s`;
+        const pct = Math.max(0, Math.min(100, Math.round(((info.cooldown_total - info.restante) / info.cooldown_total) * 100)));
+        barEl.style.width = (100 - pct) + '%';
+      }
+    }
+  } catch (err) {
+    console.error("Error overlay:", err);
+  }
+}
+
+setInterval(actualizarOverlay, 1000);
+actualizarOverlay();
+</script>
+
+</body>
+</html>

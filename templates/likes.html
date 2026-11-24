@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script src="/static/flujo.js"></script>
+<title>Contador y Top Likes TikFinity (OBS)</title>
+<style>
+  :root {
+    --color-corazon: #ff0055;
+    --color-glow: rgba(255, 0, 85, 0.45);
+    --bg-card: rgba(11, 18, 32, 0.92);
+    --border: rgba(255, 255, 255, 0.15);
+    --progreso: 0%;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    color: #fff;
+    user-select: none;
+  }
+
+  .contenedor {
+    padding: 14px;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    max-width: 380px;
+  }
+
+  /* Tarjeta TikFinity */
+  .card-likes {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 16px;
+    padding: 12px 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px var(--color-glow);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Corazón 3D animado */
+  .corazon-box {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .corazon-svg {
+    width: 38px;
+    height: 38px;
+    fill: var(--color-corazon);
+    filter: drop-shadow(0 0 10px var(--color-glow));
+    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: latido 1.8s infinite ease-in-out;
+  }
+
+  .corazon-svg.latido-fuerte {
+    animation: none;
+    transform: scale(1.35);
+  }
+
+  @keyframes latido {
+    0% { transform: scale(1); }
+    14% { transform: scale(1.15); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.18); }
+    70% { transform: scale(1); }
+  }
+
+  /* Mini corazones flotantes */
+  .mini-heart {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    fill: var(--color-corazon);
+    pointer-events: none;
+    animation: flotarCorazon 1.2s forwards cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes flotarCorazon {
+    0% { opacity: 1; transform: translate(0, 0) scale(0.6); }
+    100% { opacity: 0; transform: translate(var(--tx, 0px), -45px) scale(1.2); }
+  }
+
+  /* Datos Meta */
+  .info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .titulo {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #ffd45e;
+    margin-bottom: 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .meta-txt {
+    color: #8fa3c7;
+    font-size: 11px;
+    font-family: Consolas, monospace;
+  }
+
+  .contador-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .contador {
+    font-size: 26px;
+    font-weight: 900;
+    font-family: Consolas, "Courier New", monospace;
+    letter-spacing: -0.02em;
+    color: #fff;
+    text-shadow: 0 0 12px var(--color-glow);
+    transition: transform 0.2s ease;
+  }
+
+  .porcentaje {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--color-corazon);
+  }
+
+  /* Barra de progreso */
+  .barra-progreso {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    margin-top: 6px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .barra-fill {
+    height: 100%;
+    width: var(--progreso);
+    background: linear-gradient(90deg, #ff0077, var(--color-corazon), #ffd45e);
+    border-radius: 999px;
+    box-shadow: 0 0 10px var(--color-glow);
+    transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* LISTA DE TOP LIKERS (LEADERBOARD TIKFINITY) */
+  .leaderboard-box {
+    background: rgba(11, 18, 32, 0.94);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 14px;
+    padding: 10px 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.3s ease;
+  }
+
+  .lb-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #ffd45e;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 6px;
+    margin-bottom: 2px;
+  }
+
+  .lb-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .lb-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 8px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    transition: transform 0.2s, background 0.2s;
+  }
+  .lb-row:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .lb-user-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .medal-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  .medal-1 { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); }
+  .medal-2 { background: linear-gradient(135deg, #e2e8f0, #94a3b8); color: #000; }
+  .medal-3 { background: linear-gradient(135deg, #d97706, #92400e); color: #fff; }
+  .medal-other { background: rgba(255, 255, 255, 0.1); color: #cbd5e1; }
+
+  .lb-username {
+    font-size: 13px;
+    font-weight: 800;
+    color: #f8fafc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+  }
+
+  .lb-count {
+    font-size: 13px;
+    font-weight: 900;
+    font-family: Consolas, monospace;
+    color: var(--color-corazon);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .lb-empty {
+    font-size: 12px;
+    color: #94a3b8;
+    text-align: center;
+    padding: 8px 4px;
+    font-style: italic;
+  }
+
+  /* Modos por URL */
+  body.modo-solo-lista .card-likes { display: none; }
+  body.modo-solo-barra .leaderboard-box { display: none; }
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+  <!-- Tarjeta de Barra / Meta de Likes -->
+  <div class="card-likes" id="card">
+    <div class="corazon-box" id="corazon-box">
+      <svg class="corazon-svg" id="corazon" viewBox="0 0 24 24">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+    </div>
+
+    <div class="info">
+      <div class="titulo">
+        <span id="titulo_txt">META DE LIKES</span>
+        <span class="meta-txt" id="meta_txt">0 / 5,000</span>
+      </div>
+      <div class="contador-row">
+        <span class="contador" id="contador_num">0</span>
+        <span class="porcentaje" id="pct_txt">0%</span>
+      </div>
+      <div class="barra-progreso" id="barra_caja">
+        <div class="barra-fill" id="barra_fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard de Top Likes -->
+  <div class="leaderboard-box" id="box_leaderboard">
+    <div class="lb-header">
+      <span>❤️ TOP LIKES DEL STREAM</span>
+      <span style="font-size:10px;color:#94a3b8;">TIKFINITY LIVE</span>
+    </div>
+    <div class="lb-rows" id="lb_rows">
+      <div class="lb-empty">✨ ¡Toca la pantalla para entrar al podio!</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+
+// Configuración de modo por URL (?modo=solo_lista / ?modo=solo_barra)
+if (params.get("modo") === "solo_lista") document.body.classList.add("modo-solo-lista");
+if (params.get("modo") === "solo_barra") document.body.classList.add("modo-solo-barra");
+
+let ultimoConteo = 0;
+
+function animarCorazon() {
+  const c = $("corazon");
+  c.classList.add("latido-fuerte");
+  setTimeout(() => c.classList.remove("latido-fuerte"), 250);
+
+  // Generar mini partícula de corazón
+  const box = $("corazon-box");
+  const p = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  p.setAttribute("viewBox", "0 0 24 24");
+  p.classList.add("mini-heart");
+  p.style.setProperty("--tx", `${(Math.random() - 0.5) * 60}px`);
+  p.innerHTML = `<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>`;
+  box.appendChild(p);
+  setTimeout(() => p.remove(), 1200);
+}
+
+function formatearNum(n) {
+  return Number(n || 0).toLocaleString("es-ES");
+}
+
+function renderLikes(data) {
+  if (!data) return;
+  const cfg = data.likes || data;
+
+  // Color personalizado
+  if (cfg.color) {
+    document.documentElement.style.setProperty("--color-corazon", cfg.color);
+  }
+
+  // Título
+  if (cfg.titulo) $("titulo_txt").textContent = cfg.titulo;
+
+  // Conteo
+  const actuales = Number(cfg.actuales || 0);
+  const meta = Number(cfg.meta || 5000);
+
+  if (actuales > ultimoConteo) {
+    animarCorazon();
+    ultimoConteo = actuales;
+  }
+
+  $("contador_num").textContent = formatearNum(actuales);
+  $("meta_txt").textContent = `${formatearNum(actuales)} / ${formatearNum(meta)}`;
+
+  const pct = Math.min(100, Math.max(0, meta > 0 ? (actuales / meta) * 100 : 0));
+  $("pct_txt").textContent = `${Math.round(pct)}%`;
+  document.documentElement.style.setProperty("--progreso", `${pct}%`);
+
+  // Mostrar u ocultar barra
+  $("barra_caja").style.display = cfg.mostrar_barra === false ? "none" : "block";
+
+  // Renderizar Lista de Top Likers
+  const topList = cfg.top_likers || [];
+  const lbContainer = $("lb_rows");
+
+  if (!topList || topList.length === 0) {
+    lbContainer.innerHTML = `<div class="lb-empty">✨ ¡Toca la pantalla para entrar al podio!</div>`;
+  } else {
+    lbContainer.innerHTML = topList.map((item, idx) => {
+      const pos = idx + 1;
+      const medalClass = pos === 1 ? "medal-1" : pos === 2 ? "medal-2" : pos === 3 ? "medal-3" : "medal-other";
+      const icon = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : `#${pos}`;
+      return `
+        <div class="lb-row">
+          <div class="lb-user-box">
+            <div class="medal-badge ${medalClass}">${icon}</div>
+            <div class="lb-username">@${item.usuario}</div>
+          </div>
+          <div class="lb-count">${formatearNum(item.likes)} ❤️</div>
+        </div>
+      `;
+    }).join("");
+  }
+}
+
+// Carga inicial y polling
+async function actualizar() {
+  try {
+    const res = await fetch("/api/tops");
+    if (res.ok) {
+      const d = await res.json();
+      renderLikes(d.likes);
+    }
+  } catch (err) {
+    console.error("Error likes fetch:", err);
+  }
+}
+
+// Eventos en vivo vía SSE/flujo
+if (window.flujo) {
+  flujo.on("likes", d => renderLikes(d));
+  flujo.on("tops_cfg", d => renderLikes(d.likes));
+}
+
+actualizar();
+setInterval(actualizar, 2000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script src="/static/flujo.js"></script><style>
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;background:transparent;overflow:hidden;color:#f5f8ff;font:600 16px "Segoe UI",Arial,sans-serif}
+#meta{position:absolute;left:50%;bottom:5%;transform:translateX(-50%);width:min(620px,94vw);padding:15px 19px 16px;background:linear-gradient(115deg,#0b1428f2,#151b36ed);border:1px solid #46567d;border-radius:12px;box-shadow:0 8px 30px #0008;display:none}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}.tag{font:800 10px Consolas,monospace;letter-spacing:.14em;color:#091323;background:linear-gradient(100deg,#62e6eb,#ffd45c);padding:4px 7px;border-radius:3px}h1{font-size:20px;margin:0;letter-spacing:.02em}.amounts{display:flex;justify-content:space-between;gap:12px;margin:12px 0 7px;color:#becce5;font-size:13px}.amounts strong{color:#fff;font-size:15px}.percent{color:#ffe17b;font:900 20px Consolas,monospace;white-space:nowrap}
+.track{height:17px;padding:3px;background:#070c18;border:1px solid #48577a;border-radius:4px;overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,#56d9e8,#63e89c,#ffda69);box-shadow:0 0 12px #65e4c9;transition:width .7s cubic-bezier(.2,.7,.2,1);border-radius:2px}.note{font-size:10px;color:#91a3c2;margin-top:8px}
+@media(max-width:420px){ #meta{padding:12px}.top{align-items:flex-start}h1{font-size:17px}.amounts{font-size:11px}.amounts strong{font-size:13px}}
+</style></head><body><div id="meta" aria-live="polite"><div class="top"><h1 id="title">PC Gamer</h1><span class="tag">META DE STREAM</span></div><div class="amounts"><span id="raised"></span><span class="percent" id="percent">0%</span><span id="target"></span></div><div class="track"><div class="bar" id="bar"></div></div><div class="note" id="note">Gracias por ayudarme a llegar a la meta.</div></div>
+<script>
+const $=id=>document.getElementById(id), box=$("meta"), preview=new URLSearchParams(location.search).get("preview")==="1";
+function pintar(d){
+  if(!d.activa&&!preview){box.style.display="none";return}
+  const moneda=["USD","EUR","MXN","COP","PEN"].includes(d.moneda)?d.moneda:"USD";
+  const fmt=n=>new Intl.NumberFormat("es-EC",{style:"currency",currency:moneda,maximumFractionDigits:2}).format(n||0);
+  const objetivo=Math.max(.01,Number(d.objetivo)||.01), ahorrado=Math.max(0,Number(d.ahorrado)||0), p=Math.min(100,ahorrado/objetivo*100);
+  $("title").textContent=d.titulo||"Meta de stream";$("raised").replaceChildren(document.createTextNode("Llevamos "));const ra=document.createElement("strong");ra.textContent=fmt(ahorrado);$("raised").append(ra);$("target").replaceChildren(document.createTextNode("Objetivo "));const ta=document.createElement("strong");ta.textContent=fmt(objetivo);$("target").append(ta);
+  $("percent").textContent=Math.floor(ahorrado/objetivo*100)+"%";$("bar").style.width=p+"%";
+  $("note").textContent=ahorrado>=objetivo?"¡Meta alcanzada! Gracias por hacerlo posible.":"Cada aporte nos acerca a la PC gamer. ¡Gracias por apoyar!";
+  box.style.display="block";
+}
+async function cargar(){try{pintar(await(await fetch("/api/meta",{cache:"no-store"})).json())}catch{}}
+const flujo=new Flujo("meta");flujo.onopen=cargar;flujo.addEventListener("meta_cfg",e=>pintar(JSON.parse(e.data)));
+</script></body></html>

@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Contador & Inicio de Stream - DB Legends</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    :root {
+      --gold: #ffb703;
+      --orange: #fb8500;
+      --cyan: #00f0ff;
+      --red: #ef233c;
+    }
+
+    body {
+      background: #090e1a;
+      color: #f1f5f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 24px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .top-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #1e293b;
+      flex-wrap: wrap;
+    }
+
+    .top-header h1 {
+      font-size: 26px;
+      margin: 0;
+      font-weight: 800;
+      background: linear-gradient(90deg, #ffb703, #fb8500, #ff0055);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 22px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .card h2 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-top: 0;
+      margin-bottom: 16px;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .obs-box {
+      background: #0b1324;
+      border: 1px dashed #3b82f6;
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .obs-url {
+      font-family: Consolas, monospace;
+      font-size: 14px;
+      color: #60a5fa;
+      background: #060b14;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid #1e3a8a;
+      flex: 1;
+      min-width: 260px;
+      word-break: break-all;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .btn-gold {
+      background: linear-gradient(90deg, #d97706, #f59e0b);
+      color: #000;
+      font-weight: 800;
+    }
+
+    .btn-gold:hover {
+      background: linear-gradient(90deg, #b45309, #d97706);
+      color: #fff;
+    }
+
+    .btn-stream {
+      background: linear-gradient(90deg, #e11d48, #f43f5e);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .btn-stream:hover {
+      background: linear-gradient(90deg, #be123c, #e11d48);
+      transform: translateY(-1px);
+    }
+
+    /* SECTION DE LANZAMIENTO RÁPIDO PARA STREAM */
+    .stream-launchpad {
+      background: linear-gradient(135deg, rgba(225, 29, 72, 0.12) 0%, rgba(245, 158, 11, 0.08) 100%);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 22px;
+    }
+
+    .stream-launchpad-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fda4af;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .quick-timers-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .timer-btn {
+      background: #1f2937;
+      border: 1px solid #374151;
+      color: #f1f5f9;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .timer-btn:hover {
+      background: #374151;
+      border-color: #f43f5e;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.25);
+    }
+
+    .timer-btn-highlight {
+      background: linear-gradient(90deg, rgba(225, 29, 72, 0.25), rgba(245, 158, 11, 0.25));
+      border-color: #f43f5e;
+      color: #ffe4e6;
+    }
+
+    .delay-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(244, 63, 94, 0.2);
+    }
+
+    .delay-btn {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .delay-btn:hover {
+      background: #1e293b;
+      border-color: #60a5fa;
+      color: #fff;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    .form-control {
+      background: #090e1a;
+      border: 1px solid #334155;
+      color: #fff;
+      font-size: 14px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+
+    .presets-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .preset-pill {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-pill:hover {
+      background: #334155;
+      border-color: #f59e0b;
+      color: #fff;
+    }
+
+    .checks-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin: 18px 0;
+      padding: 12px 16px;
+      background: #0c1427;
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+    }
+
+    .check-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #e2e8f0;
+      cursor: pointer;
+    }
+
+    .check-label input {
+      accent-color: #f59e0b;
+      width: 17px;
+      height: 17px;
+    }
+
+    /* PREVIEW CONTAINER */
+    .preview-wrap {
+      width: 100%;
+      height: 250px;
+      border: 2px dashed #1e293b;
+      border-radius: 12px;
+      background: #060913;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .preview-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+    }
+
+    .status-toast {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #10b981;
+      color: #fff;
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- ENCABEZADO -->
+    <div class="top-header">
+      <div>
+        <h1>⏱️ Contador de Eventos & Inicio de Stream</h1>
+        <p style="margin: 4px 0 0; color: #94a3b8; font-size: 14px;">
+          Widget regresivo animado para OBS con estética Dragon Ball: Cuenta regresiva antes de empezar directo o eventos especiales.
+        </p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <a href="/" class="btn" style="background: #334155;">🏠 Panel Principal</a>
+        <a href="/contador" target="_blank" class="btn">👁️ Abrir Overlay</a>
+      </div>
+    </div>
+
+    <!-- ENLACE PARA OBS -->
+    <div class="card">
+      <h2>🌐 Enlace Navegador para OBS Studio</h2>
+      <div class="obs-box">
+        <span class="obs-url" id="obs-url">http://127.0.0.1:5000/contador</span>
+        <button class="btn btn-gold" onclick="copiarURL()">📋 Copiar Enlace</button>
+      </div>
+      <p style="margin: 10px 0 0; font-size: 12px; color: #64748b;">
+        💡 <b>Cómo usar en OBS:</b> Añade una fuente de tipo <b>Navegador (Browser Source)</b> con ancho <b>1200</b> y alto <b>400</b>. Marca <i>"Controlar audio con OBS"</i> (opcional). Cualquier cambio guardado aquí se actualiza automáticamente en OBS sin necesidad de recargar la escena.
+      </p>
+    </div>
+
+    <!-- LANZADOR RÁPIDO DE INICIO DE STREAM -->
+    <div class="stream-launchpad">
+      <div class="stream-launchpad-title">
+        <span>🎬 Lanzamiento Rápido: Cuenta Regresiva para Iniciar Stream</span>
+      </div>
+      <p style="margin: 0 0 14px; font-size: 13px; color: #cbd5e1;">
+        Configura con 1 clic los minutos previos a comenzar tu directo (oculta los días para dejar solo Minutos y Segundos limpios).
+      </p>
+
+      <div class="quick-timers-row">
+        <button type="button" class="timer-btn" onclick="lanzarStream(3)">
+          ⚡ 3 Minutos
+        </button>
+        <button type="button" class="timer-btn timer-btn-highlight" onclick="lanzarStream(5)">
+          🔥 5 Minutos (Recomendado)
+        </button>
+        <button type="button" class="timer-btn" onclick="lanzarStream(10)">
+          ⏱️ 10 Minutos
+        </button>
+        <button type="button" class="timer-btn" onclick="lanzarStream(15)">
+          ⏳ 15 Minutos
+        </button>
+      </div>
+
+      <div class="delay-controls">
+        <span style="font-size: 12px; font-weight: 700; color: #94a3b8;">Ajustar tiempo en directo:</span>
+        <button type="button" class="delay-btn" onclick="ajustarMinutos(1)">➕ +1 Minuto</button>
+        <button type="button" class="delay-btn" onclick="ajustarMinutos(5)">➕ +5 Minutos (Prórroga)</button>
+        <button type="button" class="delay-btn" onclick="ajustarMinutos(-1)">➖ -1 Minuto</button>
+        <span style="font-size: 11px; color: #64748b; margin-left: auto;">Suma o resta tiempo instantáneamente a OBS si te demoras un poco.</span>
+      </div>
+    </div>
+
+    <!-- VISTA PREVIA EN VIVO -->
+    <div class="card">
+      <h2>👁️ Vista Previa en Vivo</h2>
+      <div class="preview-wrap">
+        <iframe id="preview-frame" class="preview-iframe" src="/contador"></iframe>
+      </div>
+    </div>
+
+    <!-- CONFIGURACIÓN DETALLADA -->
+    <div class="card">
+      <h2>⚙️ Configuración y Personalización</h2>
+
+      <!-- Plantillas / Presets -->
+      <div style="margin-bottom: 20px;">
+        <label style="font-size: 13px; font-weight: 700; color: #94a3b8;">Plantillas rápidas:</label>
+        <div class="presets-row">
+          <button type="button" class="preset-pill" onclick="aplicarPreset('stream')">🎬 Inicio de Stream (5 min)</button>
+          <button type="button" class="preset-pill" onclick="aplicarPreset('festival')">🌟 Legends Festival</button>
+          <button type="button" class="preset-pill" onclick="aplicarPreset('reveals')">📺 Reveals & Stuff</button>
+          <button type="button" class="preset-pill" onclick="aplicarPreset('1h')">⏰ En 1 Hora</button>
+          <button type="button" class="preset-pill" onclick="aplicarPreset('24h')">📅 En 24 Horas</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="cfg_badge">Etiqueta Superior (Badge):</label>
+          <input type="text" id="cfg_badge" class="form-control" placeholder="Ej: EN BREVE, LEGENDS FESTIVAL...">
+        </div>
+
+        <div class="form-group">
+          <label for="cfg_titulo">Título Principal:</label>
+          <input type="text" id="cfg_titulo" class="form-control" placeholder="Ej: EL STREAM COMIENZA EN">
+        </div>
+
+        <div class="form-group">
+          <label for="cfg_subtitulo">Subtítulo:</label>
+          <input type="text" id="cfg_subtitulo" class="form-control" placeholder="Ej: PREPÁRATE · EN DIRECTO">
+        </div>
+
+        <div class="form-group">
+          <label for="cfg_fecha">Fecha y Hora Objetivo:</label>
+          <input type="datetime-local" id="cfg_fecha" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="cfg_final">Mensaje al Terminar (Cero):</label>
+          <input type="text" id="cfg_final" class="form-control" placeholder="Ej: 🔥 ¡ESTAMOS EN VIVO! 🔥">
+        </div>
+
+        <div class="form-group">
+          <label for="cfg_estilo">Estilo Visual:</label>
+          <select id="cfg_estilo" class="form-control">
+            <option value="festival">🌟 Legends Festival (Dorado Dragon Ball)</option>
+            <option value="ultra">💎 Ultra Rarity (Ki Celestial / Azul Neón)</option>
+            <option value="compacto">📏 Barra Compacta Horizontal</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="checks-row">
+        <label class="check-label">
+          <input type="checkbox" id="cfg_dias">
+          <span>Mostrar Días</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" id="cfg_horas">
+          <span>Mostrar Horas</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" id="cfg_segundos" checked>
+          <span>Mostrar Segundos</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" id="cfg_aura" checked>
+          <span>Efecto Aura Ki Brillante</span>
+        </label>
+        <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+          <span style="font-size: 13px; font-weight: 700; color: #94a3b8;">Tamaño:</span>
+          <input type="range" id="cfg_tamano" min="60" max="150" value="100" style="accent-color: #f59e0b; width: 120px;">
+          <span id="lbl_tamano" style="font-size: 12px; font-family: monospace;">100%</span>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+        <button type="button" class="btn btn-gold" style="font-size: 15px; padding: 12px 28px;" onclick="guardar()">💾 Guardar y Actualizar OBS</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="status-toast">✅ ¡Contador guardado y sincronizado con OBS!</div>
+
+  <script>
+    const urlOBS = `${window.location.origin}/contador`;
+    document.getElementById("obs-url").textContent = urlOBS;
+
+    const cfgBadge = document.getElementById("cfg_badge");
+    const cfgTitulo = document.getElementById("cfg_titulo");
+    const cfgSubtitulo = document.getElementById("cfg_subtitulo");
+    const cfgFecha = document.getElementById("cfg_fecha");
+    const cfgFinal = document.getElementById("cfg_final");
+    const cfgEstilo = document.getElementById("cfg_estilo");
+    const cfgDias = document.getElementById("cfg_dias");
+    const cfgHoras = document.getElementById("cfg_horas");
+    const cfgSegundos = document.getElementById("cfg_segundos");
+    const cfgAura = document.getElementById("cfg_aura");
+    const cfgTamano = document.getElementById("cfg_tamano");
+    const lblTamano = document.getElementById("lbl_tamano");
+    const previewFrame = document.getElementById("preview-frame");
+    const toast = document.getElementById("toast");
+
+    cfgTamano.oninput = () => {
+      lblTamano.textContent = `${cfgTamano.value}%`;
+    };
+
+    function copiarURL() {
+      navigator.clipboard.writeText(urlOBS).then(() => {
+        mostrarToast("📋 URL copiada al portapapeles. Pégala en OBS Studio.");
+      });
+    }
+
+    function mostrarToast(msg) {
+      toast.textContent = msg;
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 3500);
+    }
+
+    function formatLocalDatetime(dateObj) {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const day = String(dateObj.getDate()).padStart(2, "0");
+      const hours = String(dateObj.getHours()).padStart(2, "0");
+      const mins = String(dateObj.getMinutes()).padStart(2, "0");
+      return `${year}-${month}-${day}T${hours}:${mins}`;
+    }
+
+    // Lanzamiento rápido de Stream en N minutos con guardado inmediato
+    async function lanzarStream(minutos) {
+      const target = new Date(Date.now() + minutos * 60 * 1000);
+      cfgBadge.value = "🔴 EN BREVE";
+      cfgTitulo.value = "EL STREAM COMIENZA EN";
+      cfgSubtitulo.value = "PREPÁRATE · EN DIRECTO";
+      cfgFecha.value = formatLocalDatetime(target);
+      cfgFinal.value = "🔥 ¡ESTAMOS EN VIVO! ¡A DARLE CON TODO! 🔥";
+      cfgEstilo.value = "festival";
+      cfgDias.checked = false;    // Ocultar días para pre-stream
+      cfgHoras.checked = false;   // Mostrar solo Minutos y Segundos gigantes
+      cfgSegundos.checked = true;
+      cfgAura.checked = true;
+
+      await guardar();
+      mostrarToast(`🚀 ¡Cuenta regresiva de ${minutos} minutos lanzada a OBS!`);
+    }
+
+    // Ajustar minutos en caliente (+1, +5, -1 min)
+    async function ajustarMinutos(minutosDelta) {
+      let curTime = new Date(cfgFecha.value).getTime();
+      if (isNaN(curTime) || curTime < Date.now()) {
+        curTime = Date.now();
+      }
+      const nuevoTarget = new Date(curTime + minutosDelta * 60 * 1000);
+      cfgFecha.value = formatLocalDatetime(nuevoTarget);
+      await guardar();
+      mostrarToast(`⏱️ Tiempo ajustado: ${minutosDelta > 0 ? '+' : ''}${minutosDelta} min`);
+    }
+
+    function aplicarPreset(tipo) {
+      const ahora = new Date();
+      if (tipo === "stream") {
+        const target = new Date(ahora.getTime() + 5 * 60 * 1000);
+        cfgBadge.value = "🔴 EN BREVE";
+        cfgTitulo.value = "EL STREAM COMIENZA EN";
+        cfgSubtitulo.value = "PREPÁRATE · EN DIRECTO";
+        cfgFecha.value = formatLocalDatetime(target);
+        cfgFinal.value = "🔥 ¡ESTAMOS EN VIVO! ¡A DARLE CON TODO! 🔥";
+        cfgEstilo.value = "festival";
+        cfgDias.checked = false;
+        cfgHoras.checked = false;
+        cfgSegundos.checked = true;
+      } else if (tipo === "festival") {
+        cfgBadge.value = "LEGENDS FESTIVAL";
+        cfgTitulo.value = "LEGENDS FESTIVAL";
+        cfgSubtitulo.value = "DRAGON BALL LEGENDS";
+        cfgEstilo.value = "festival";
+        cfgFecha.value = "2024-11-21T13:00";
+        cfgFinal.value = "¡EL LEGENDS FESTIVAL HA COMENZADO!";
+        cfgDias.checked = true;
+        cfgHoras.checked = true;
+        cfgSegundos.checked = true;
+      } else if (tipo === "reveals") {
+        cfgBadge.value = "REVEALS & STUFF";
+        cfgTitulo.value = "REVEALS & STUFF";
+        cfgSubtitulo.value = "FESTIVAL SPECIAL EDITION";
+        cfgEstilo.value = "festival";
+        const d = new Date(ahora.getTime() + 2 * 3600 * 1000);
+        cfgFecha.value = formatLocalDatetime(d);
+        cfgFinal.value = "¡REVEALS & STUFF EN VIVO!";
+        cfgDias.checked = false;
+        cfgHoras.checked = true;
+        cfgSegundos.checked = true;
+      } else if (tipo === "1h") {
+        const d = new Date(ahora.getTime() + 60 * 60 * 1000);
+        cfgFecha.value = formatLocalDatetime(d);
+        cfgDias.checked = false;
+        cfgHoras.checked = true;
+        cfgSegundos.checked = true;
+      } else if (tipo === "24h") {
+        const d = new Date(ahora.getTime() + 24 * 60 * 60 * 1000);
+        cfgFecha.value = formatLocalDatetime(d);
+        cfgDias.checked = true;
+        cfgHoras.checked = true;
+        cfgSegundos.checked = true;
+      }
+    }
+
+    async function cargar() {
+      try {
+        const res = await fetch("/api/contador", { cache: "no-store" });
+        if (res.ok) {
+          const { cfg } = await res.json();
+          if (cfg) {
+            cfgBadge.value = cfg.badge || "LEGENDS FESTIVAL";
+            cfgTitulo.value = cfg.titulo || "LEGENDS FESTIVAL";
+            cfgSubtitulo.value = cfg.subtitulo || "DRAGON BALL LEGENDS";
+            cfgFinal.value = cfg.mensaje_final || "¡EL LEGENDS FESTIVAL HA COMENZADO!";
+            cfgEstilo.value = cfg.estilo || "festival";
+            cfgFecha.value = (cfg.fecha_objetivo || "").slice(0, 16);
+            cfgDias.checked = cfg.mostrar_dias !== false;
+            cfgHoras.checked = cfg.mostrar_horas !== false;
+            cfgSegundos.checked = cfg.mostrar_segundos !== false;
+            cfgAura.checked = cfg.mostrar_aura !== false;
+            cfgTamano.value = cfg.tamano || 100;
+            lblTamano.textContent = `${cfgTamano.value}%`;
+          }
+        }
+      } catch (err) {}
+    }
+
+    async function guardar() {
+      const payload = {
+        badge: cfgBadge.value.trim(),
+        titulo: cfgTitulo.value.trim(),
+        subtitulo: cfgSubtitulo.value.trim(),
+        fecha_objetivo: cfgFecha.value,
+        mensaje_final: cfgFinal.value.trim(),
+        estilo: cfgEstilo.value,
+        mostrar_dias: cfgDias.checked,
+        mostrar_horas: cfgHoras.checked,
+        mostrar_segundos: cfgSegundos.checked,
+        mostrar_aura: cfgAura.checked,
+        tamano: Number(cfgTamano.value) || 100
+      };
+
+      try {
+        const res = await fetch("/api/contador", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          mostrarToast("✅ ¡Contador guardado y sincronizado con OBS!");
+          previewFrame.src = previewFrame.src; // refrescar preview
+        }
+      } catch (e) {
+        alert("Error al guardar la configuración: " + e);
+      }
+    }
+
+    cargar();
+  </script>
+</body>
+</html>

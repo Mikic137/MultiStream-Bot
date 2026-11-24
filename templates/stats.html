@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><script src="/static/flujo.js"></script><title>Stream</title>
+<style>
+body{font:14px "Segoe UI",Arial,sans-serif;background:#0b1220;color:#e8eefc;margin:0;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-width:860px;margin-bottom:12px}
+.t{background:#131c31;border:1px solid #22304f;border-radius:12px;padding:12px}
+.t b{display:block;font-size:26px;color:#ffd45e;margin-top:4px}.t span{color:#8a9bbd;font-size:12px}
+.card{background:#131c31;border:1px solid #22304f;border-radius:12px;padding:14px;margin-bottom:12px;max-width:860px}
+h2{font-size:12px;letter-spacing:.08em;color:#8a9bbd;margin:0 0 10px;text-transform:uppercase}
+ul{list-style:none;padding:0;margin:0}li{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid #22304f}
+li:first-child{border-top:0}.mut{color:#8a9bbd}
+button{background:#493ee6;color:#fff;border:0;border-radius:6px;padding:6px 12px;cursor:pointer}
+</style></head><body>
+<div class="grid" id="g"></div>
+<div class="card"><h2>Últimos regalos</h2><ul id="reg"></ul><p class="mut" id="vreg">Todavía no hay regalos.</p></div>
+<div class="card"><h2>Top donantes (diamantes)</h2><ul id="top"></ul><p class="mut" id="vtop">Todavía no hay donantes.</p></div>
+<p><button id="rst">Reiniciar estadísticas</button> <span class="mut">Se reinician solas al empezar un directo nuevo.</span></p>
+<script>
+const $=s=>document.querySelector(s), f=n=>(+n||0).toLocaleString("es");
+const hms=s=>[s/3600|0,(s/60|0)%60,s%60].map(x=>String(x).padStart(2,"0")).join(":");
+function lista(ul,vacio,items,fn){ul.replaceChildren();vacio.hidden=items.length>0;
+  items.forEach(x=>{const li=document.createElement("li");fn(x).forEach(t=>{const s=document.createElement("span");s.textContent=t;li.append(s)});ul.append(li)})}
+async function refrescar(){
+  if(!visible()) return;
+  try{
+    const d=await (await fetch("/api/stats",{cache:"no-store"})).json();
+    const t=[["👀 Viewers ahora",f(d.viewers)],["📈 Pico",f(d.pico)],["👥 Visitantes",f(d.visitantes)],["❤️ Likes",f(d.likes)],
+      ["➕ Seguidores nuevos",f(d.seguidores)],["🔁 Compartidos",f(d.compartidos)],["💎 Diamantes",f(d.diamantes)],
+      ["🎁 Regalos",f(d.regalos_n)],["⏱ En directo",d.inicio?hms(d.duracion):"—"]];
+    $("#g").replaceChildren(...t.map(([n,v])=>{const e=document.createElement("div"),s=document.createElement("span"),b=document.createElement("b");
+      e.className="t";s.textContent=n;b.textContent=v;e.append(s,b);return e}));
+    lista($("#reg"),$("#vreg"),d.regalos,x=>[`${x.h}  ${x.u}`,`${x.g} ×${x.n} · 💎 ${f(x.d)}`]);
+    lista($("#top"),$("#vtop"),d.top,x=>[x[0],"💎 "+f(x[1])]);
+  }catch{}
+}
+$("#rst").onclick=()=>fetch("/api/stats/reiniciar",{method:"POST"}).then(refrescar);
+setInterval(refrescar,3000); refrescar();
+</script></body></html>

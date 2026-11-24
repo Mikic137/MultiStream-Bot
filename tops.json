@@ -1,0 +1,33 @@
+{
+  "likes": {
+    "activa": false,
+    "meta": 5000,
+    "titulo": "META DE LIKES",
+    "color": "#ff0055",
+    "mostrar_barra": true,
+    "mostrar_lista": true,
+    "top_n": 3,
+    "auto_meta": true,
+    "incremento": 2500,
+    "estilo": "tikfinity"
+  },
+  "top_donador": {
+    "activo": true,
+    "titulo": "TOP DONADORES LIVE",
+    "modo": "dual",
+    "top_n": 3,
+    "fijar": false,
+    "usuario_fijo": "",
+    "diamantes_fijo": 0
+  },
+  "top_streamloots": {
+    "activo": false,
+    "usuario": "",
+    "cofres": 0,
+    "dinero": "$0.00 USD",
+    "rango": "👑 SUPREMO VIP",
+    "mensaje": "¡Máximo patrocinador del canal!",
+    "color_aura": "dorado",
+    "tamano": "normal"
+  }
+}

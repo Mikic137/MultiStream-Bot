@@ -1,0 +1,397 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script src="/static/flujo.js"></script><title>Alertas MultiStream</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent;color:#fff;font-family:"Segoe UI",Arial,sans-serif}
+#wrap{
+  position:absolute;left:50%;top:18%;
+  transform:translate(-50%,-10px) scale(.96);
+  width:min(760px,90vw);padding:20px 28px;text-align:center;
+  opacity:0;visibility:hidden;
+  border:2px solid var(--ac,#ffd45e);border-radius:14px;
+  background:linear-gradient(110deg,#101729f5,#18233bf2);
+  box-shadow:0 0 20px color-mix(in srgb,var(--ac,#ffd45e) 30%,transparent),0 10px 30px #0009;
+  transition:opacity .22s ease,transform .26s ease,visibility .22s;
+  will-change:transform,opacity;
+}
+#clip{display:block;width:100%;max-height:42vh;object-fit:contain;margin:0 auto 10px;border-radius:8px}
+#clip[hidden]{display:none !important}
+#wrap.on{opacity:1 !important;visibility:visible !important;transform:translate(-50%,0) scale(1) !important}
+#wrap.energia.on{animation:entrada .36s ease-out forwards}
+#wrap.pixel{border-radius:3px;box-shadow:6px 6px 0 #080c16,0 0 0 4px color-mix(in srgb,var(--ac,#ffd45e) 25%,transparent)}
+#wrap.pixel.on{animation:pixel .28s steps(3,end) forwards}
+
+/* MODO SOLO VIDEO / MEME (SIN TARJETA, MARCO NI CAJA DE FONDO) */
+#wrap.solo-meme {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  width: auto !important;
+  max-width: 90vw !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  animation: entrada .3s ease-out forwards !important;
+}
+#wrap.solo-meme #clip {
+  max-height: 72vh !important;
+  max-width: 88vw !important;
+  border-radius: 14px;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.85);
+  margin: 0 auto;
+  display: block !important;
+}
+#wrap.solo-meme #badge,
+#wrap.solo-meme #title,
+#wrap.solo-meme #message {
+  display: none !important;
+}
+.meme-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(10, 18, 12, 0.92);
+  border: 2px solid #53fc18;
+  color: #fff;
+  padding: 8px 24px;
+  border-radius: 30px;
+  font-size: clamp(18px, 2.8vw, 26px);
+  font-weight: 800;
+  text-shadow: 0 2px 4px #000;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+  margin-top: 12px;
+  letter-spacing: .03em;
+  animation: entrada .25s ease-out forwards;
+}
+
+/* ESTILO Y ANIMACIÓN EXCLUSIVA PARA NUEVOS SEGUIDORES (SÚPER OPTIMIZADA EN GPU) */
+#wrap.follower {
+  border-radius: 12px;
+  border: 3px solid var(--ac, #3df270);
+  background: linear-gradient(135deg, #0a2119f2 0%, #0d162be8 100%);
+  box-shadow: 0 6px 0 #050b14, 0 0 18px color-mix(in srgb, var(--ac, #3df270) 35%, transparent);
+}
+#wrap.follower.on {
+  animation: followPop .44s cubic-bezier(0.175, 0.885, 0.32, 1.25) forwards;
+}
+
+.follow-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 26px;
+  margin-bottom: 6px;
+  animation: followPulse 0.8s steps(4) infinite alternate;
+  will-change: transform;
+}
+
+@keyframes followPop {
+  0% { opacity: 0; transform: translate(-50%, -36px) scale(0.82); }
+  65% { opacity: 1; transform: translate(-50%, 4px) scale(1.04); }
+  100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+@keyframes followPulse {
+  0% { transform: scale(0.96); }
+  100% { transform: scale(1.16) rotate(4deg); }
+}
+
+#title{color:var(--ac,#ffd45e);font-weight:900;font-size:clamp(22px,4vw,36px);letter-spacing:.09em;text-shadow:0 2px #000,0 0 12px color-mix(in srgb,var(--ac,#ffd45e) 40%,transparent)}
+#message{margin-top:8px;font-weight:700;font-size:clamp(18px,3vw,28px);text-shadow:0 2px 2px #000}
+
+@keyframes entrada{
+  0%{opacity:0;transform:translate(-50%,16px) scale(.86)}
+  60%{opacity:1;transform:translate(-50%,-3px) scale(1.02)}
+  100%{opacity:1;transform:translate(-50%,0) scale(1)}
+}
+@keyframes pixel{
+  0%{clip-path:inset(50% 0 50% 0);opacity:0}
+  55%{clip-path:inset(0);opacity:1;transform:translate(-50%,0) scale(1.03)}
+  100%{clip-path:inset(0);opacity:1;transform:translate(-50%,0) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){ #wrap,#wrap.on{animation:none;transition:none}}
+</style></head><body>
+
+<div id="banner_audio" style="display:none;position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#0d2818;border:2px solid #53fc18;color:#53fc18;padding:10px 22px;border-radius:24px;font-size:14px;font-weight:bold;cursor:pointer;z-index:99999;box-shadow:0 6px 20px rgba(0,0,0,0.6);text-align:center;">
+  🔊 Haz clic aquí para activar audio en esta ventana
+</div>
+
+<audio id="sfx_player" playsinline preload="auto"></audio>
+
+<div id="wrap">
+  <video id="clip" playsinline preload="auto" hidden></video>
+  <div id="meme_tag" class="meme-tag" hidden></div>
+  <div id="badge" hidden></div>
+  <div id="title"></div>
+  <div id="message"></div>
+</div>
+
+<script>
+const preview=new URLSearchParams(location.search).get("preview")==="1", wrap=document.getElementById("wrap"), badge=document.getElementById("badge"), title=document.getElementById("title"), message=document.getElementById("message"), clip=document.getElementById("clip"), sfxPlayer=document.getElementById("sfx_player"), memeTag=document.getElementById("meme_tag"), flujo=new Flujo("alertas");
+let ocupada=false, temporizador=0, pruebas=[], inicioOcupada=0, audioCtx=null;
+
+function getAudioCtx(){
+  try{
+    if(!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(AC) audioCtx = new AC();
+    }
+    if(audioCtx && audioCtx.state === "suspended"){
+      audioCtx.resume().catch(()=>{});
+    }
+  }catch(e){}
+  return audioCtx;
+}
+
+function sonarChimeWebAudio(){
+  try{
+    const ctx = getAudioCtx();
+    if(!ctx) return;
+    const notas = [523.25, 659.25, 783.99, 1046.50]; // Do, Mi, Sol, Do agudo (acorde mayor brillante)
+    notas.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
+      gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.08);
+      gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + i * 0.08 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i * 0.08 + 0.4);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + i * 0.08);
+      osc.stop(ctx.currentTime + i * 0.08 + 0.45);
+    });
+  }catch(e){}
+}
+
+function desbloquearAudio(){
+  getAudioCtx();
+  const b = document.getElementById("banner_audio");
+  if(b) b.style.display = "none";
+}
+window.addEventListener("click", desbloquearAudio, {passive: true});
+window.addEventListener("keydown", desbloquearAudio, {passive: true});
+window.addEventListener("touchstart", desbloquearAudio, {passive: true});
+
+if(preview){
+  const b = document.getElementById("banner_audio");
+  if(b){
+    b.style.display = "block";
+    b.onclick = ()=>{
+      desbloquearAudio();
+      sonarChimeWebAudio();
+      b.style.display = "none";
+    };
+  }
+}
+
+function fin(){
+  clearTimeout(temporizador);
+  temporizador=0;
+  try{clip.pause()}catch(e){}
+  try{sfxPlayer.pause()}catch(e){}
+  clip.onended=null;
+  clip.hidden=true;
+  wrap.className=""; // Inicia la transición suave de salida
+
+  setTimeout(()=>{
+    try{clip.removeAttribute("src");clip.load()}catch(e){}
+    try{sfxPlayer.removeAttribute("src");sfxPlayer.load()}catch(e){}
+    badge.innerHTML="";
+    badge.hidden=true;
+    badge.style.display="";
+    title.textContent="";
+    title.style.display="";
+    message.textContent="";
+    message.style.display="";
+    if(memeTag){
+      memeTag.hidden=true;
+      memeTag.style.display="none";
+    }
+    wrap.classList.remove("solo-meme");
+    ocupada=false;
+    bombear();
+  }, 320);
+}
+
+function mostrar(a){
+  ocupada=true;
+  inicioOcupada=Date.now();
+  clearTimeout(temporizador);
+  try{clip.pause()}catch(e){}
+  try{sfxPlayer.pause()}catch(e){}
+  clip.onended=null;
+  clip.hidden=true;
+
+  // MODO ANTI-COPYRIGHT Y SONIDO ALTERNATIVO:
+  const silenciar = Boolean(a.silenciar_video || new URLSearchParams(location.search).get("modo") === "seguro");
+
+  if (a.sonido) {
+    sfxPlayer.src = a.sonido;
+    sfxPlayer.volume = 1;
+    sfxPlayer.currentTime = 0;
+    sfxPlayer.play().catch(err => {
+      console.warn("SFX blocked or error:", err);
+    });
+  }
+
+  // MODO SOLO VIDEO / MEME:
+  // Si mostrar_tarjeta es false y hay video -> NO SE MUESTRA LA TARJETA (Solo video limpio + pastilla con usuario)
+  const soloMeme = (a.mostrar_tarjeta === false && Boolean(a.video));
+
+  if(soloMeme){
+    wrap.className = "solo-meme on";
+    badge.hidden = true;
+    badge.style.display = "none";
+    title.textContent = "";
+    title.style.display = "none";
+    message.textContent = "";
+    message.style.display = "none";
+    if(memeTag){
+      const prefijo = (a.tipo === "youtube_superchat" || a.plataforma === "youtube")
+        ? "🔴 Super Chat de:"
+        : (a.tipo === "kick_sub" || a.tipo === "regalo")
+          ? "🎁 Regalo de:"
+          : "👤 De:";
+      const acColor = a.plataforma === "kick" ? "#53fc18" : (a.plataforma === "youtube" ? "#ff0000" : (a.plataforma === "twitch" ? "#a970ff" : "#ffd45e"));
+      memeTag.innerHTML = `${prefijo} <span style="color:${acColor};">${a.usuario || "Alguien"}</span>`;
+      memeTag.hidden = false;
+      memeTag.style.display = "inline-flex";
+    }
+  } else {
+    wrap.classList.remove("solo-meme");
+    if(memeTag){
+      memeTag.hidden = true;
+      memeTag.style.display = "none";
+    }
+    title.style.display = "";
+    message.style.display = "";
+    badge.style.display = "";
+
+    wrap.style.setProperty("--ac",/^#[0-9a-f]{6}$/i.test(a.color||"")?a.color:"#53fc18");
+    title.textContent=a.titulo||"ALERTA";
+    message.textContent=a.mensaje||"";
+
+    // Insignia animada retro según plataforma y tipo
+    if(a.plataforma==="kick"){
+      badge.innerHTML=(a.tipo==="follow" || a.tipo==="kick_follow")
+        ? '<span class="follow-badge" style="color: #53fc18;">🟢 ✦ KICK FOLLOW ✦ 🟢</span>'
+        : (a.tipo==="kick_recompensa" || a.tipo==="kick_reward")
+          ? '<span class="follow-badge" style="color: #53fc18;">🎁 ✦ CANJE DE PUNTOS ✦ 🎁</span>'
+          : (a.cantidad && a.cantidad > 1)
+            ? `<span class="follow-badge" style="color: #53fc18;">🎁 ✦ REGALÓ ${a.cantidad} SUBS ✦ 🎁</span>`
+            : '<span class="follow-badge" style="color: #53fc18;">⭐ ✦ KICK SUB ✦ ⭐</span>';
+      badge.hidden=false;
+    } else if(a.plataforma==="youtube"){
+      badge.innerHTML=(a.tipo==="youtube_miembro" || a.tipo==="miembro")
+        ? '<span class="follow-badge" style="color: #2ba640;">🟢 ✦ YOUTUBE MIEMBRO ✦ 🟢</span>'
+        : '<span class="follow-badge" style="color: #ff0000;">🔴 ✦ YOUTUBE SUPER CHAT ✦ 🔴</span>';
+      badge.hidden=false;
+    } else if(a.plataforma==="twitch"){
+      badge.innerHTML=(a.tipo==="twitch_follow" || a.tipo==="follow")
+        ? '<span class="follow-badge" style="color: #9146ff;">🟣 ✦ TWITCH FOLLOW ✦ 🟣</span>'
+        : (a.cantidad && a.cantidad > 1)
+          ? `<span class="follow-badge" style="color: #9146ff;">🎁 ✦ REGALÓ ${a.cantidad} SUBS ✦ 🎁</span>`
+          : '<span class="follow-badge" style="color: #9146ff;">⭐ ✦ TWITCH SUB ✦ ⭐</span>';
+      badge.hidden=false;
+    } else if(a.tipo==="follow" || a.efecto==="follower"){
+      badge.innerHTML='<span class="follow-badge">💖 ✦ FOLLOW ✦ 💖</span>';
+      badge.hidden=false;
+    } else {
+      badge.innerHTML="";
+      badge.hidden=true;
+    }
+
+    // Reiniciar la animación forzando reflow del DOM
+    wrap.className="";
+    void wrap.offsetWidth;
+
+    if(a.efecto==="follower" || (a.tipo==="follow" && a.efecto!=="pixel" && a.efecto!=="energia" && a.efecto!=="ninguno")){
+      wrap.className="follower on";
+    } else if(a.efecto==="pixel"){
+      wrap.className="pixel on";
+    } else if(a.efecto==="energia"){
+      wrap.className="energia on";
+    } else {
+      wrap.className="on";
+    }
+  }
+
+  // GESTIÓN DE DURACIÓN:
+  // Si duracion_modo === "video" y hay video -> La alerta termina EXACTAMENTE cuando el video finaliza
+  // Si no, usa el tiempo en segundos configurado
+  const esModoVideo = (a.duracion_modo === "video" && Boolean(a.video));
+  if(esModoVideo){
+    temporizador = setTimeout(fin, 30000); // Límite de seguridad
+  } else {
+    const ms = Math.max(2, Math.min(30, Number(a.segundos) || 5)) * 1000;
+    temporizador = setTimeout(fin, ms);
+  }
+
+  if(a.video){
+    clip.src=a.video;
+    clip.hidden=false;
+    clip.onended=fin;
+    clip.onerror=()=>{
+      console.warn("Error cargando clip de alerta:", clip.src);
+      fin();
+    };
+    clip.onloadedmetadata=()=>{
+      if(esModoVideo && clip.duration && !isNaN(clip.duration)){
+        clearTimeout(temporizador);
+        temporizador = setTimeout(fin, (clip.duration + 1.2) * 1000);
+      }
+    };
+    clip.muted = silenciar;
+    clip.volume = 1;
+    clip.load();
+    clip.play().catch(err=>{
+      console.warn("Autoplay bloqueado:", err);
+      if(!silenciar){
+        clip.muted = true;
+        clip.play().catch(()=>{});
+      }
+    });
+  }
+}
+
+async function bombear(){
+  if(preview||ocupada) return;
+  if(pruebas.length){
+    mostrar(pruebas.shift());
+    return;
+  }
+  try{
+    const r=await fetch("/api/alertas/siguiente",{method:"POST",cache:"no-store"});
+    if(r.ok){
+      const d=await r.json();
+      if(d.alerta) mostrar(d.alerta);
+    }
+  }catch(e){}
+}
+
+flujo.addEventListener("stream_alert",bombear);
+flujo.addEventListener("alertas_prueba",e=>{
+  const a=JSON.parse(e.data);
+  if(preview||!ocupada){
+    mostrar(a);
+  }else{
+    pruebas.push(a);
+  }
+});
+
+// Watchdog de seguridad anti-bloqueo:
+setInterval(()=>{
+  if(ocupada && Date.now() - inicioOcupada > 45000){
+    fin();
+  } else if(!ocupada){
+    bombear();
+  }
+}, 4000);
+
+flujo.onopen=()=>{
+  if(preview) mostrar({tipo:"kick_sub",titulo:"¡NUEVA SUSCRIPCIÓN EN KICK!",mensaje:"¡NEXUS se ha suscrito a Kick! (1×)",color:"#53fc18",segundos:5,duracion_modo:"video",mostrar_tarjeta:true,plataforma:"kick"});
+  else bombear();
+};
+</script></body></html>

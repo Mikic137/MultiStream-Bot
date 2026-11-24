@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script src="/static/flujo.js"></script>
+<title>Metas y Tops Combinados (OBS)</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    color: #fff;
+    user-select: none;
+  }
+
+  .contenedor-multi {
+    padding: 12px;
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .contenedor-multi.vertical {
+    flex-direction: column;
+  }
+
+  .frame-box {
+    border-radius: 18px;
+    overflow: hidden;
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Modo rotación */
+  .modo-rotar .frame-box {
+    display: none;
+  }
+  .modo-rotar .frame-box.activa {
+    display: block;
+    animation: aparecerSlide 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes aparecerSlide {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  iframe {
+    border: 0;
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<div class="contenedor-multi" id="contenedor">
+  <div class="frame-box" id="box-likes">
+    <iframe src="/likes" width="370" height="230" scrolling="no"></iframe>
+  </div>
+  <div class="frame-box" id="box-donador">
+    <iframe src="/top_donador" width="380" height="230" scrolling="no"></iframe>
+  </div>
+  <div class="frame-box" id="box-streamloots">
+    <iframe src="/top_streamloots" width="390" height="230" scrolling="no"></iframe>
+  </div>
+</div>
+
+<script>
+const $ = i => document.getElementById(i);
+const params = new URLSearchParams(location.search);
+
+if (params.get("pos") === "vertical") {
+  $("contenedor").classList.add("vertical");
+}
+
+if (params.get("modo") === "rotar") {
+  document.body.classList.add("modo-rotar");
+  const frames = [ $("box-likes"), $("box-donador"), $("box-streamloots") ];
+  let actual = 0;
+
+  function rotar() {
+    frames.forEach((f, i) => f.classList.toggle("activa", i === actual));
+    actual = (actual + 1) % frames.length;
+  }
+
+  rotar();
+  setInterval(rotar, parseInt(params.get("segundos") || 10) * 1000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "activo": false,
+  "titulo": "SORTEO EN VIVO",
+  "premio": "Premio Especial",
+  "modo": "ruleta",
+  "palabras_clave": ["!sorteo", "!ruleta", "!participar", "!yo", "!entrar", "!cofre"],
+  "participantes": [],
+  "ganadores": []
+}

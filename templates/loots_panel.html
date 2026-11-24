@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <script src="/static/flujo.js"></script>
+  <title>Streamloots - Retos y Cartas</title>
+  <style>
+    @font-face {
+      font-family: 'Minecraft Medium';
+      src: local('Minecraft Medium'), local('Minecraft-Medium'), local('Minecraft'), local('Minecraft Regular');
+    }
+    @font-face {
+      font-family: 'Minecraft';
+      src: local('Minecraft'), local('Minecraft Medium'), local('Minecraft-Medium');
+    }
+
+    body {
+      font: 14px "Segoe UI", Arial, sans-serif;
+      background: #0b1220;
+      color: #e8eefc;
+      margin: 0;
+      padding: 16px;
+    }
+    .card {
+      background: #131c31;
+      border: 1px solid #22304f;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+      max-width: 940px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    }
+    h2 {
+      font-size: 13px;
+      letter-spacing: .08em;
+      color: #8a9bbd;
+      margin: 0 0 12px;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .g {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 6px 16px;
+    }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 5px 0;
+    }
+    label > span { min-width: 130px; }
+    input, select {
+      background: #0e1628;
+      color: #fff;
+      border: 1px solid #2f4a80;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font: inherit;
+    }
+    input[type=checkbox] { width: auto; }
+    input[type=number] { width: 75px; }
+    input[type=color] { width: 46px; height: 32px; padding: 2px; }
+    input.w { flex: 1; min-width: 220px; }
+
+    button {
+      background: #493ee6;
+      color: #fff;
+      border: 0;
+      border-radius: 6px;
+      padding: 7px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: filter 0.15s;
+    }
+    button:hover { filter: brightness(1.15); }
+    button.r { background: #b8324a; }
+    button.v { background: #10b981; }
+    button.w-act { background: #ff9900; color: #0b0f19; }
+
+    /* LISTA DE RETOS */
+    ul { list-style: none; padding: 0; margin: 0; }
+    li {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid #1e2b48;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: #0d1629;
+      flex-wrap: wrap;
+      transition: all 0.2s;
+    }
+    li > div.info {
+      flex: 1;
+      min-width: 240px;
+    }
+    li small {
+      display: block;
+      color: #8a9bbd;
+      margin-top: 3px;
+    }
+
+    /* ESTILO "EN CURSO" (ACTIVO) */
+    li.cu {
+      background: #14223d;
+      border: 2px solid #ffd45e;
+      box-shadow: 0 0 15px rgba(255, 212, 94, 0.25);
+    }
+    li.cu b.tit {
+      color: #ffd45e;
+      font-size: 15px;
+    }
+
+    /* BADGES DE RAREZA */
+    .badge-rareza {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-right: 8px;
+      user-select: none;
+      border: 1px solid transparent;
+    }
+    .badge-rareza.legendaria {
+      background: linear-gradient(135deg, #78350f 0%, #b45309 100%);
+      color: #fef08a;
+      border-color: #facc15;
+      box-shadow: 0 0 8px rgba(250, 204, 21, 0.5);
+    }
+    .badge-rareza.epica {
+      background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%);
+      color: #f5d0fe;
+      border-color: #c084fc;
+      box-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+    }
+    .badge-rareza.rara {
+      background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 100%);
+      color: #bae6fd;
+      border-color: #38bdf8;
+    }
+    .badge-rareza.comun {
+      background: #1e293b;
+      color: #94a3b8;
+      border-color: #334155;
+    }
+
+    /* STATUS BADGE EN CURSO */
+    .badge-curso {
+      background: #ffb52d;
+      color: #0b0f19;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      margin-right: 6px;
+    }
+
+    .mut { color: #8a9bbd; }
+    .warn { color: #ff8795; }
+    .status-pill {
+      font-size: 12px;
+      background: #1b2640;
+      padding: 4px 10px;
+      border-radius: 14px;
+      color: #93c5fd;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>
+    <span>Conexión con Streamloots</span>
+    <span class="status-pill">Fuente OBS: <code id="url"></code></span>
+  </h2>
+  <p id="est"></p>
+  <label>
+    <span>URL de alertas</span>
+    <input class="w" type="password" id="idin" placeholder="https://widgets.streamloots.com/alerts/..." autocomplete="off">
+    <button id="gid">Guardar</button>
+    <button id="bid" class="r">Quitar</button>
+  </label>
+  <label style="margin-top: 10px;">
+    <span>Escuchar canjes</span>
+    <input type="checkbox" id="activa">
+  </label>
+  <p class="mut">En tu cuenta de Streamloots: <b>Alerts</b> (Page Configuration) ➔ «Alert provider» ➔ mostrar URL. Es privada como una contraseña: solo se guarda en tu PC.</p>
+</div>
+
+<p class="mut" id="persistencia">Las cartas y ajustes se guardan localmente en loots.json.</p>
+
+<div class="card" style="background: linear-gradient(135deg, #181938 0%, #0e1526 100%); border: 1px solid #382d6b;">
+  <h2 style="color: #c084fc; margin-bottom: 6px;">
+    <span>🟣 Puntos de Canal (Twitch & Kick) Vinculados</span>
+    <span style="font-size: 11px; background: #3b1f63; color: #d8b4fe; padding: 2px 8px; border-radius: 10px;">EN VIVO</span>
+  </h2>
+  <p style="font-size: 12px; color: #cbd5e1; margin: 4px 0 0; line-height: 1.5;">
+    Cualquier reto canjeado con <b>Puntos de Canal de Twitch</b> (con texto) o <b>Puntos de Kick</b> se agrega automáticamente a esta lista en pantalla en tiempo real con categoría <b>💜 ÉPICA</b>.
+  </p>
+  <p class="mut" style="font-size: 11px; margin: 4px 0 0;">
+    💡 <b>Recomendación para Twitch:</b> En tu panel de creador de Twitch, al crear la recompensa de puntos de canal, asegúrate de marcar la casilla <i>«Requerir que el espectador introduzca texto»</i> para que el espectador escriba su reto y aparezca al instante en tu OBS.
+  </p>
+</div>
+
+<!-- RETOS PENDIENTES Y EN CURSO -->
+<div class="card">
+  <h2>
+    <span>Retos y Cartas Canjeadas</span>
+    <span id="contadores" style="color: #ffd45e; font-weight: bold;"></span>
+  </h2>
+
+  <div style="background: #0d1527; border: 1px solid #1f2d4d; border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+    <div style="font-weight: 600; font-size: 12px; color: #8a9bbd; margin-bottom: 8px; text-transform: uppercase;">
+      ➕ Añadir reto o carta a mano:
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <input class="w" id="mc" placeholder="Reto o carta (ej. Gana sin usar Rising Rush)" maxlength="120">
+      <input id="mu" placeholder="De quién (ej. @Juanito)" style="width: 140px;" maxlength="40">
+      <select id="mr" style="width: 140px;">
+        <option value="comun">⚪ Común</option>
+        <option value="rara">🔷 Rara</option>
+        <option value="epica">💜 Épica</option>
+        <option value="legendaria" selected>⭐ Legendaria</option>
+      </select>
+      <button id="ma">+ Añadir</button>
+    </div>
+  </div>
+
+  <p class="mut" style="margin-bottom: 10px;">
+    💡 <b>Tip:</b> Puedes marcar <b>más de un reto a la vez en curso</b> (2, 3, 5 o los que quieras). Los activos se destacarán arriba en pantalla.
+  </p>
+
+  <ul id="ls"></ul>
+  <p class="mut" id="vl" style="text-align: center; padding: 16px;">No hay retos pendientes ni en curso.</p>
+</div>
+
+<!-- HECHOS RECIENTEMENTE -->
+<div class="card">
+  <h2>Hechos recientemente</h2>
+  <ul id="hs"></ul>
+  <p class="mut" id="vh" style="text-align: center; padding: 10px;">Todavía ninguno.</p>
+</div>
+
+<!-- APARIENCIA EN OBS -->
+<div class="card">
+  <h2>Cómo se ve en pantalla (OBS)</h2>
+  <div class="g">
+    <div style="grid-column: 1 / -1; background: #0d1527; border: 1px solid #1f2d4d; border-radius: 8px; padding: 12px; margin-bottom: 6px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-weight: 600; color: #ffd45e;">🔤 Tipografía / Fuente de los retos:</span>
+        <button type="button" id="btn_detectar_fuentes" style="font-size: 11px; padding: 4px 10px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 4px; cursor: pointer;">↻ Recargar fuentes del sistema</button>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <select id="sel_fuente" style="flex: 1; min-width: 220px; padding: 6px 10px; background: #070c17; color: #fff; border: 1px solid #22304f; border-radius: 6px;">
+          <option value="">-- Seleccionar fuente instalada --</option>
+          <optgroup label="⭐ Recomendadas / Streamer" id="opt_destacadas">
+            <option value="Minecraft Medium">Minecraft Medium</option>
+            <option value="Minecraft">Minecraft</option>
+            <option value="Press Start 2P">Press Start 2P (Retro / Arcade)</option>
+            <option value="Rajdhani">Rajdhani (Estilo DBLegends)</option>
+            <option value="Impact">Impact (Grande y Gruesa)</option>
+            <option value="Arial Black">Arial Black</option>
+            <option value="Segoe UI">Segoe UI</option>
+            <option value="Consolas">Consolas (Pixel / Monospace)</option>
+          </optgroup>
+          <optgroup label="💻 Detectadas en tu PC (Windows)" id="opt_sistema">
+            <option disabled>Cargando fuentes de Windows...</option>
+          </optgroup>
+        </select>
+        <input class="w" id="fuente" maxlength="60" placeholder="O escribe el nombre aquí..." style="flex: 1; min-width: 180px;">
+      </div>
+      <div style="margin-top: 10px; padding: 8px 12px; background: #070c17; border-radius: 6px; border: 1px dashed #334155; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <span style="font-size: 11px; color: #64748b; text-transform: uppercase; white-space: nowrap;">Vista Previa:</span>
+        <span id="prev_fuente" style="font-size: 19px; font-weight: bold; color: #ffd45e; text-shadow: 1px 1px 0 #000; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Reto: Gana sin Rising Rush (123)</span>
+      </div>
+    </div>
+    <label><span>Color del título</span><input type="color" id="color_titulo"></label>
+    <label><span>Color del texto</span><input type="color" id="color_texto"></label>
+    <label><span>Color de los activos</span><input type="color" id="color_actual"></label>
+    <label><span>Tamaño del texto</span><input type="number" id="tam" min="14" max="80"></label>
+    <label><span>Retos visibles</span><input type="number" id="max_visible" min="1" max="20"></label>
+    <label><span>Posición</span><select id="pos"><option value="arriba-izq">Arriba izquierda</option><option value="arriba-der">Arriba derecha</option><option value="abajo-izq">Abajo izquierda</option><option value="abajo-der">Abajo derecha</option></select></label>
+    <label><span>Tarjeta de fondo</span><input type="checkbox" id="fondo"></label>
+    <label><span>Mostrar rareza (categoría)</span><input type="checkbox" id="mostrar_rareza"></label>
+    <label><span>Ocultar si no hay retos</span><input type="checkbox" id="ocultar_vacio"></label>
+    <label><span>Mostrar mensaje</span><input type="checkbox" id="mostrar_mensaje"></label>
+  </div>
+  <p><button id="gs">Guardar estilo</button><span class="mut" id="msg" style="margin-left: 10px;"></span></p>
+</div>
+
+<script>
+const $ = i => document.getElementById(i);
+const api = (u, b) => fetch(u, {
+  method: b ? "POST" : "GET",
+  headers: { "Content-Type": "application/json" },
+  body: b && JSON.stringify(b)
+}).then(r => r.json());
+
+const CAMPOS = [
+  "activa", "fuente", "color_titulo", "color_texto", "color_actual",
+  "tam", "max_visible", "pos", "fondo", "mostrar_rareza", "ocultar_vacio", "mostrar_mensaje"
+];
+
+const val = e => e.type === "checkbox" ? e.checked : e.type === "number" ? +e.value : e.value;
+const btn = (t, f, c) => {
+  const b = document.createElement("button");
+  b.textContent = t;
+  b.onclick = f;
+  if (c) b.className = c;
+  return b;
+};
+
+$("url").textContent = location.origin + "/loots";
+let boot = null, primera = true;
+
+const accion = (i, a) => api(`/api/loots/${i}/${a}`, {}).then(refrescar);
+const cambiarRareza = (i, r) => api(`/api/loots/${i}/rareza`, { rareza: r }).then(refrescar);
+
+function renderRarezaBadge(rareza, itemId) {
+  const span = document.createElement("span");
+  span.className = "badge-rareza " + (rareza || "comun");
+
+  const icons = {
+    legendaria: "⭐ Legendaria",
+    epica: "💜 Épica",
+    rara: "🔷 Rara",
+    comun: "⚪ Común"
+  };
+  span.textContent = icons[rareza] || "⚪ Común";
+  span.title = "Haz clic para cambiar categoría";
+  span.style.cursor = "pointer";
+
+  span.onclick = () => {
+    const orden = ["comun", "rara", "epica", "legendaria"];
+    const sig = orden[(orden.indexOf(rareza || "comun") + 1) % orden.length];
+    cambiarRareza(itemId, sig);
+  };
+  return span;
+}
+
+function lista(ul, vacio, datos, esHistorial = false) {
+  ul.replaceChildren();
+  vacio.hidden = datos.length > 0;
+
+  datos.forEach(x => {
+    const li = document.createElement("li");
+    const d = document.createElement("div");
+    d.className = "info";
+
+    if (x.estado === "curso") li.className = "cu";
+
+    const badgeRareza = renderRarezaBadge(x.rareza, x.id);
+    d.append(badgeRareza);
+
+    if (x.estado === "curso") {
+      const badgeCurso = document.createElement("span");
+      badgeCurso.className = "badge-curso";
+      badgeCurso.textContent = "▶ EN CURSO";
+      d.append(badgeCurso);
+    }
+
+    const b = document.createElement("b");
+    b.className = "tit";
+    b.textContent = x.carta;
+    d.append(b);
+
+    const s = document.createElement("small");
+    s.textContent = `${x.usuario ? "de " + x.usuario + " • " : ""}${x.hora}${x.mensaje ? " • «" + x.mensaje + "»" : ""}`;
+    d.append(s);
+
+    li.append(d);
+
+    if (!esHistorial) {
+      if (x.estado === "curso") {
+        li.append(btn("⏸ Pausar", () => accion(x.id, "pendiente")));
+      } else {
+        li.append(btn("▶ En curso", () => accion(x.id, "curso"), "w-act"));
+      }
+      li.append(btn("✓ Hecho", () => accion(x.id, "hecho"), "v"));
+      li.append(btn("✕", () => accion(x.id, "quitar"), "r"));
+    } else {
+      li.append(btn("↺ Deshacer", () => accion(x.id, "pendiente")));
+      li.append(btn("✕", () => accion(x.id, "quitar"), "r"));
+    }
+
+    ul.append(li);
+  });
+}
+
+async function refrescar() {
+  const d = await api("/api/loots");
+  const c = d.cfg;
+
+  const p = $("persistencia");
+  p.textContent = d.guardado ? "Guardado localmente en loots.json." : "No se guardaron los últimos cambios: " + (d.error_guardado || "revisa permisos de carpeta.");
+  p.className = d.guardado ? "mut" : "mut warn";
+
+  const t = {
+    apagado: "⚪ Apagado",
+    conectando: "🟡 Conectando...",
+    conectado: "🟢 Conectado y escuchando",
+    error: "🔴 Error"
+  }[d.estado.txt] || d.estado.txt;
+
+  $("est").textContent = t + (d.estado.error ? " — " + d.estado.error : "") + (d.hay_id ? ` (ID guardado …${d.id_fin})` : " (falta URL de alertas)");
+
+  if (primera) {
+    primera = false;
+    CAMPOS.forEach(k => {
+      const e = $(k);
+      if (e) {
+        if (e.type === "checkbox") e.checked = c[k];
+        else e.value = c[k];
+      }
+    });
+    if ($("sel_fuente") && c.fuente) $("sel_fuente").value = c.fuente;
+    actualizarPreviewFuente(c.fuente);
+    cargarFuentesSistema();
+  }
+
+  // Ordenar: primero todos los que están "en curso", luego por id
+  const vivos = d.items.filter(x => x.estado !== "hecho").sort((a, b) => (b.estado === "curso") - (a.estado === "curso") || a.id - b.id);
+  const cantCurso = vivos.filter(x => x.estado === "curso").length;
+  $("contadores").textContent = `${cantCurso} en curso • ${vivos.length} total activos`;
+
+  lista($("ls"), $("vl"), vivos, false);
+  lista($("hs"), $("vh"), d.items.filter(x => x.estado === "hecho").reverse(), true);
+}
+
+function actualizarPreviewFuente(f) {
+  const nom = (f || "").trim();
+  const pf = $("prev_fuente");
+  if (pf) {
+    pf.style.fontFamily = nom ? (nom.includes(" ") ? `"${nom}", 'Rajdhani', sans-serif` : `${nom}, 'Rajdhani', sans-serif`) : "'Rajdhani', sans-serif";
+  }
+}
+
+async function cargarFuentesSistema() {
+  const sel = $("sel_fuente");
+  const optSist = $("opt_sistema");
+  if (!sel || !optSist) return;
+  try {
+    const res = await api("/api/loots/fuentes");
+    if (res && res.fuentes) {
+      optSist.replaceChildren();
+      res.fuentes.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f;
+        opt.textContent = f;
+        optSist.append(opt);
+      });
+      if ($("fuente") && $("fuente").value) {
+        sel.value = $("fuente").value;
+      }
+    }
+  } catch (err) {
+    console.warn("No se pudieron cargar fuentes del sistema:", err);
+  }
+}
+
+if ($("fuente")) {
+  $("fuente").oninput = e => {
+    if ($("sel_fuente")) $("sel_fuente").value = e.target.value;
+    actualizarPreviewFuente(e.target.value);
+  };
+}
+if ($("sel_fuente")) {
+  $("sel_fuente").onchange = e => {
+    if (e.target.value) {
+      if ($("fuente")) $("fuente").value = e.target.value;
+      actualizarPreviewFuente(e.target.value);
+    }
+  };
+}
+if ($("btn_detectar_fuentes")) {
+  $("btn_detectar_fuentes").onclick = () => {
+    cargarFuentesSistema();
+  };
+}
+
+$("gid").onclick = async () => {
+  const r = await api("/api/loots", { id: $("idin").value, activa: true });
+  if (!r.ok) alert(r.error);
+  else { $("idin").value = ""; $("activa").checked = true; }
+  refrescar();
+};
+
+$("bid").onclick = async () => {
+  if (confirm("¿Quitar la URL de Streamloots guardada?")) {
+    await api("/api/loots", { borrar_id: true });
+    refrescar();
+  }
+};
+
+$("activa").onchange = () => api("/api/loots", { activa: $("activa").checked }).then(refrescar);
+
+$("gs").onclick = async () => {
+  await api("/api/loots", Object.fromEntries(CAMPOS.map(k => [k, $(k) ? val($(k)) : undefined])));
+  $("msg").textContent = "¡Estilo guardado! ✓";
+  setTimeout(() => $("msg").textContent = "", 2000);
+};
+
+$("ma").onclick = async () => {
+  const carta = $("mc").value.trim();
+  if (!carta) return;
+  const usuario = $("mu").value.trim();
+  const rareza = $("mr").value;
+  const r = await api("/api/loots/agregar", { carta, usuario, rareza });
+  if (!r.ok) alert(r.error);
+  else {
+    $("mc").value = "";
+    $("mu").value = "";
+  }
+  refrescar();
+};
+$("mc").onkeydown = e => { if (e.key === "Enter") $("ma").click(); };
+
+const es = new Flujo("");
+es.addEventListener("loots", refrescar);
+es.addEventListener("boot", e => {
+  const x = JSON.parse(e.data).id;
+  if (boot && boot !== x) location.reload();
+  boot = x;
+});
+
+refrescar();
+setInterval(() => { if (!document.hidden) refrescar(); }, 8000);
+</script>
+</body>
+</html>

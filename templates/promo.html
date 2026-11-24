@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script src="/static/flujo.js"></script>
+<title>Promo (OBS)</title>
+<style>
+  @font-face {
+    font-family: 'Minecraft Medium';
+    src: local('Minecraft Medium'), local('Minecraft-Medium'), local('Minecraft'), local('Minecraft Regular');
+  }
+  @font-face {
+    font-family: 'Minecraft';
+    src: local('Minecraft'), local('Minecraft Medium'), local('Minecraft-Medium');
+  }
+
+  :root {
+    --f: "Segoe UI", Arial, sans-serif;
+    --acc: #33ffd0;
+    --acc-glow: rgba(51, 255, 208, 0.4);
+    --bg-card: rgba(10, 16, 28, 0.92);
+    --border-card: rgba(51, 255, 208, 0.3);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+    color: #fff;
+    font-family: var(--f);
+    user-select: none;
+    width: 100%;
+    height: 100%;
+  }
+
+  #c {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    width: clamp(380px, 28vw, 560px);
+    max-width: calc(100vw - 36px);
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-left: 6px solid var(--acc);
+    border-radius: 14px;
+    padding: 14px 20px;
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 24px var(--acc-glow);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+    box-sizing: border-box;
+  }
+
+  #c.on {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  /* Posiciones */
+  #c.pos-abajo-derecha { left: auto; right: 20px; bottom: 20px; }
+  #c.pos-arriba-izquierda { top: 20px; bottom: auto; left: 20px; transform: translateY(-20px) scale(0.96); }
+  #c.pos-arriba-derecha { top: 20px; bottom: auto; left: auto; right: 20px; transform: translateY(-20px) scale(0.96); }
+  #c.pos-arriba-centro { top: 20px; bottom: auto; left: 50%; transform: translate(-50%, -20px) scale(0.96); }
+  #c.pos-arriba-centro.on { transform: translate(-50%, 0) scale(1); }
+
+  /* Modo adaptativo si el streamer crea una fuente pequeña en OBS (< 600px o < 380px) o usa ?modo=widget */
+  @media (max-width: 600px), (max-height: 380px) {
+    #c, body.modo-widget #c {
+      position: absolute !important;
+      inset: 6px !important;
+      width: auto !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      height: auto !important;
+      left: 6px !important;
+      right: 6px !important;
+      top: 6px !important;
+      bottom: 6px !important;
+      padding: 10px 14px !important;
+      gap: 6px !important;
+      transform: none !important;
+    }
+    #c.on, body.modo-widget #c.on {
+      transform: none !important;
+    }
+    .carrusel-contenedor.banner-grande {
+      min-width: 0 !important;
+      height: 120px !important;
+    }
+    .carrusel-contenedor {
+      width: 100px !important;
+      height: 70px !important;
+    }
+    #t {
+      font-size: 16px !important;
+    }
+    .l {
+      font-size: 14px !important;
+    }
+    .user-badge {
+      font-size: 11px !important;
+      padding: 2px 7px !important;
+    }
+    .red-badge {
+      width: 24px !important;
+      height: 24px !important;
+    }
+  }
+
+  body.modo-widget #c {
+    position: absolute !important;
+    inset: 6px !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    transform: none !important;
+  }
+
+  /* Encabezado */
+  .header-promo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .red-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .red-badge svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  #t {
+    color: #ffd45e;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .user-badge {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    font-family: Consolas, monospace;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Contenido principal: texto + carrusel */
+  .cuerpo-promo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .cuerpo-promo.solo-imagen {
+    justify-content: center;
+  }
+
+  /* Carrusel de imágenes */
+  .carrusel-contenedor {
+    position: relative;
+    width: 140px;
+    height: 95px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255,255,255,0.15);
+    flex-shrink: 0;
+  }
+
+  .carrusel-contenedor.banner-grande {
+    width: 100%;
+    min-width: 300px;
+    max-width: 100%;
+    height: 180px;
+  }
+
+  .carrusel-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .carrusel-slide.activa {
+    opacity: 1;
+  }
+
+  .carrusel-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Puntos indicadores del carrusel */
+  .carrusel-dots {
+    position: absolute;
+    bottom: 4px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .carrusel-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    transition: background 0.3s;
+  }
+
+  .carrusel-dot.activa {
+    background: #fff;
+    width: 12px;
+    border-radius: 4px;
+  }
+
+  /* Lista de líneas */
+  #ls {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .l {
+    font-size: 20px;
+    color: var(--acc);
+    text-shadow: 2px 2px 0 #000, 0 0 10px var(--acc-glow);
+    line-height: 1.3;
+    word-break: break-word;
+    font-weight: 600;
+  }
+
+  /* Barra de progreso inferior */
+  .barra-tiempo {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: var(--acc);
+    box-shadow: 0 0 8px var(--acc);
+    width: 100%;
+    border-radius: 0 0 14px 14px;
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+
+  #c.on .barra-tiempo {
+    animation: agotarTiempo var(--duracion, 10s) linear forwards;
+  }
+
+  @keyframes agotarTiempo {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+  }
+
+  /* Widget de viewers dentro de la promo (opcional) */
+  .promo-viewers {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .pv-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.4);
+  }
+  .pv-chip.tt { color: #00f2fe; }
+  .pv-chip.kk { color: #53fc18; }
+  .pv-chip.tw { color: #a970ff; }
+
+  /* Redes sociales - Colores y Estilos */
+  #c.red-youtube { --acc: #ff0000; --acc-glow: rgba(255,0,0,0.45); --border-card: rgba(255,0,0,0.4); }
+  #c.red-youtube .red-badge { background: #ff0000; color: #fff; }
+
+  #c.red-tiktok { --acc: #00f2fe; --acc-glow: rgba(0,242,254,0.45); --border-card: rgba(0,242,254,0.4); }
+  #c.red-tiktok .red-badge { background: #010101; border: 1px solid #fe0979; }
+
+  #c.red-kick { --acc: #53fc18; --acc-glow: rgba(83,252,24,0.45); --border-card: rgba(83,252,24,0.4); }
+  #c.red-kick .red-badge { background: #0b0e14; border: 1px solid #53fc18; }
+
+  #c.red-instagram { --acc: #f09433; --acc-glow: rgba(225,48,108,0.45); --border-card: rgba(225,48,108,0.4); }
+  #c.red-instagram .red-badge { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+
+  #c.red-discord { --acc: #5865F2; --acc-glow: rgba(88,101,242,0.45); --border-card: rgba(88,101,242,0.4); }
+  #c.red-discord .red-badge { background: #5865F2; }
+
+  #c.red-twitch { --acc: #9146FF; --acc-glow: rgba(145,70,255,0.45); --border-card: rgba(145,70,255,0.4); }
+  #c.red-twitch .red-badge { background: #9146FF; }
+
+  #c.red-twitter, #c.red-x { --acc: #1d9bf0; --acc-glow: rgba(29,155,240,0.45); --border-card: rgba(29,155,240,0.4); }
+  #c.red-twitter .red-badge, #c.red-x .red-badge { background: #000; border: 1px solid #fff; }
+
+  #c.red-streamloots { --acc: #00e5ff; --acc-glow: rgba(0,229,255,0.45); --border-card: rgba(0,229,255,0.4); }
+  #c.red-streamloots .red-badge { background: #13243a; border: 1px solid #00e5ff; }
+</style>
+</head>
+<body>
+
+<div id="c">
+  <!-- Cabecera -->
+  <div class="header-promo">
+    <div class="red-badge" id="icono-red" style="display:none"></div>
+    <div id="t"></div>
+    <div class="user-badge" id="user-badge" style="display:none"></div>
+  </div>
+
+  <!-- Cuerpo: Imagenes / Carrusel + Texto -->
+  <div class="cuerpo-promo" id="cuerpo">
+    <div class="carrusel-contenedor" id="carrusel" style="display:none">
+      <div id="carrusel-slides"></div>
+      <div class="carrusel-dots" id="carrusel-dots"></div>
+    </div>
+    <div id="ls"></div>
+  </div>
+
+  <!-- Viewers Integrados (Opcional) -->
+  <div class="promo-viewers" id="pv-box">
+    <span style="color:#8da2c0;font-size:11px;text-transform:uppercase;">En vivo:</span>
+    <div class="pv-chip tt" id="pv-tt-chip"><span>TikTok:</span><b id="pv-tt">0</b></div>
+    <div class="pv-chip kk" id="pv-kk-chip"><span>Kick:</span><b id="pv-kk">0</b></div>
+    <div class="pv-chip tw" id="pv-tw-chip"><span>Twitch:</span><b id="pv-tw">0</b></div>
+  </div>
+
+  <div class="barra-tiempo" id="barra"></div>
+</div>
+
+<script>
+const $ = i => document.getElementById(i);
+const c = $("c");
+const q = new URLSearchParams(location.search);
+if (q.get("modo") === "widget" || q.get("modo") === "compacto" || q.get("pos") === "widget") {
+  document.body.classList.add("modo-widget");
+}
+
+// Posición configurable por query (?pos=arriba_derecha, ?pos=abajo_derecha, etc.)
+function aplicarPosicion(pos) {
+  c.className = c.className.replace(/pos-[\w-]+/g, "").trim();
+  const mapa = {
+    "derecha": "pos-abajo-derecha",
+    "abajo_derecha": "pos-abajo-derecha",
+    "arriba_izquierda": "pos-arriba-izquierda",
+    "arriba_derecha": "pos-arriba-derecha",
+    "arriba_centro": "pos-arriba-centro",
+    "abajo_izquierda": "pos-abajo-izquierda"
+  };
+  const clase = mapa[pos] || "pos-abajo-izquierda";
+  c.classList.add(clase);
+}
+
+let cfg = { activa: true, segundos: 10, pausa: 35, mostrar_viewers: false, tarjetas: [] };
+let idx = 0, tOcultar = 0, tSiguiente = 0, tCarrusel = 0, boot = null;
+
+// Iconos vectoriales de redes
+const REDES_SVG = {
+  youtube: `<svg viewBox="0 0 24 24" fill="#fff"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
+  tiktok: `<svg viewBox="0 0 24 24" fill="none"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.58 2.6 2.6 2.6 0 0 1-2.6-2.6 2.6 2.6 0 0 1 2.6-2.6c.33 0 .64.06.93.18V9.65a5.75 5.75 0 0 0-.93-.08 5.73 5.73 0 0 0-5.73 5.73 5.73 5.73 0 0 0 5.73 5.73 5.73 5.73 0 0 0 5.73-5.73V8.07a7.41 7.41 0 0 0 4.39 1.43V6.36a4.27 4.27 0 0 1-3.38-.54z" fill="#00f2fe"/><path d="M19.98 6.36v3.14a7.41 7.41 0 0 1-4.39-1.43v5.23a5.73 5.73 0 0 1-5.73 5.73c-.32 0-.63-.03-.94-.08a5.73 5.73 0 0 0 5.17-5.65V3h3.09a4.278 4.278 0 0 0 1.06 2.82 4.27 4.27 0 0 0 1.74.54z" fill="#fe0979"/></svg>`,
+  kick: `<svg viewBox="0 0 24 24" fill="#53fc18"><path d="M3 2h6v7l4-7h8l-7.5 10L21 22h-8l-4-7v7H3V2z"/></svg>`,
+  instagram: `<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`,
+  discord: `<svg viewBox="0 0 24 24" fill="#fff"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>`,
+  twitch: `<svg viewBox="0 0 24 24" fill="#fff"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>`,
+  twitter: `<svg viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`,
+  x: `<svg viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`,
+  streamloots: `<svg viewBox="0 0 24 24" fill="#00e5ff"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10-2h4v2h-4V4zm10 15H4V8h16v11z"/></svg>`
+};
+
+function mostrar(datos, seg) {
+  clearTimeout(tOcultar);
+  clearTimeout(tSiguiente);
+  clearInterval(tCarrusel);
+
+  // Normalizar datos si viene como objeto o sólo título
+  const d = (typeof datos === "object" && datos !== null) ? datos : { t: datos, l: arguments[1] || [] };
+
+  // Soporta tanto los campos estándar de promo.json (titulo, lineas, usuario, imagenes, imagen)
+  // como los campos abreviados de los eventos en tiempo real (t, l, u, imgs, img)
+  const t = (d.t !== undefined ? d.t : (d.titulo !== undefined ? d.titulo : "")) || "";
+  const l = Array.isArray(d.l) ? d.l : (Array.isArray(d.lineas) ? d.lineas : []);
+  const s = seg || d.s || d.duracion || cfg.segundos || 10;
+  const red = (d.red || "").toLowerCase().trim();
+  const usuario = (d.u !== undefined ? d.u : (d.usuario !== undefined ? d.usuario : "")).trim();
+
+  // Extraer lista de imágenes limpias
+  let rawImgs = [];
+  if (Array.isArray(d.imgs) && d.imgs.length) rawImgs = d.imgs;
+  else if (Array.isArray(d.imagenes) && d.imagenes.length) rawImgs = d.imagenes;
+  else if (d.img) rawImgs = [d.img];
+  else if (d.imagen) rawImgs = [d.imagen];
+  const imgs = rawImgs.map(x => String(x || "").trim()).filter(Boolean);
+
+  // Clases temáticas
+  c.className = c.className.replace(/red-[\w-]+/g, "").trim();
+  if (red) {
+    c.classList.add("red-" + red);
+    $("icono-red").innerHTML = REDES_SVG[red] || "";
+    $("icono-red").style.display = REDES_SVG[red] ? "flex" : "none";
+  } else {
+    $("icono-red").style.display = "none";
+  }
+
+  // Título
+  $("t").textContent = t;
+
+  // Usuario / Handle (@usuario)
+  if (usuario) {
+    $("user-badge").textContent = usuario.startsWith("@") ? usuario : ("@" + usuario);
+    $("user-badge").style.display = "inline-block";
+  } else {
+    $("user-badge").style.display = "none";
+  }
+
+  // Líneas de texto
+  const ls = $("ls");
+  ls.replaceChildren();
+  if (l && l.length) {
+    l.forEach(x => {
+      const div = document.createElement("div");
+      div.className = "l";
+      div.textContent = x;
+      ls.append(div);
+    });
+    ls.style.display = "flex";
+  } else {
+    ls.style.display = "none";
+  }
+
+  // Adaptar distribución del cuerpo si solo hay imagen o texto+imagen
+  const cuerpo = $("cuerpo");
+  if (!l || l.length === 0) {
+    cuerpo.classList.add("solo-imagen");
+  } else {
+    cuerpo.classList.remove("solo-imagen");
+  }
+
+  // Carrusel de imágenes
+  const carrusel = $("carrusel");
+  const slidesBox = $("carrusel-slides");
+  const dotsBox = $("carrusel-dots");
+  slidesBox.replaceChildren();
+  dotsBox.replaceChildren();
+
+  if (imgs && imgs.length > 0) {
+    carrusel.style.display = "block";
+    carrusel.classList.toggle("banner-grande", (!l || l.length === 0));
+
+    imgs.forEach((url, i) => {
+      const slide = document.createElement("div");
+      slide.className = "carrusel-slide" + (i === 0 ? " activa" : "");
+      const img = document.createElement("img");
+      img.src = url;
+      slide.append(img);
+      slidesBox.append(slide);
+
+      if (imgs.length > 1) {
+        const dot = document.createElement("div");
+        dot.className = "carrusel-dot" + (i === 0 ? " activa" : "");
+        dotsBox.append(dot);
+      }
+    });
+
+    // Animación de rotación del carrusel si hay más de 1 imagen
+    if (imgs.length > 1) {
+      let slideIdx = 0;
+      const intervalMs = Math.max(2500, Math.floor((s * 1000) / imgs.length));
+      tCarrusel = setInterval(() => {
+        slideIdx = (slideIdx + 1) % imgs.length;
+        const slides = slidesBox.children;
+        const dots = dotsBox.children;
+        for (let i = 0; i < slides.length; i++) {
+          slides[i].classList.toggle("activa", i === slideIdx);
+          if (dots[i]) dots[i].classList.toggle("activa", i === slideIdx);
+        }
+      }, intervalMs);
+    }
+  } else {
+    carrusel.style.display = "none";
+  }
+
+  // Viewers integrados
+  const verViewers = q.get("viewers") === "1" || cfg.mostrar_viewers;
+  $("pv-box").style.display = verViewers ? "flex" : "none";
+
+  // Duración y barra de tiempo
+  c.style.setProperty("--duracion", s + "s");
+  $("barra").style.display = "block";
+
+  c.classList.add("on");
+
+  tOcultar = setTimeout(() => {
+    c.classList.remove("on");
+    clearInterval(tCarrusel);
+    programar();
+  }, s * 1000);
+}
+
+function programar() {
+  clearTimeout(tSiguiente);
+  const auto = (cfg.tarjetas || []).filter(x => x.auto);
+  if (!cfg.activa || !auto.length) return;
+  tSiguiente = setTimeout(() => {
+    const t = auto[idx++ % auto.length];
+    mostrar(t, t.duracion || cfg.segundos);
+  }, (cfg.pausa || 35) * 1000);
+}
+
+async function cargar() {
+  try {
+    cfg = await (await fetch("/api/promo", { cache: "no-store" })).json();
+  } catch(e) { return; }
+
+  const f = (cfg.fuente || "").replace(/["']/g, "").trim();
+  if (f) {
+    document.documentElement.style.setProperty("--f", `"${f}", "Segoe UI", Arial, sans-serif`);
+  } else {
+    document.documentElement.style.setProperty("--f", `"Segoe UI", Arial, sans-serif`);
+  }
+  aplicarPosicion(q.get("pos") || cfg.posicion || "abajo_izquierda");
+
+  if (!cfg.activa) c.classList.remove("on");
+  programar();
+}
+
+function actualizarViewersPromo(v) {
+  if (!v) return;
+  const cfgPlat = v.plataformas || { tiktok: true, kick: true, twitch: true, ocultar_desconectadas: false };
+  const ttVis = cfgPlat.tiktok && (!cfgPlat.ocultar_desconectadas || v.tiktok_conectado);
+  const kkVis = cfgPlat.kick && (!cfgPlat.ocultar_desconectadas || v.kick_conectado);
+  const twVis = cfgPlat.twitch && (!cfgPlat.ocultar_desconectadas || v.twitch_conectado);
+
+  if ($("pv-tt-chip")) $("pv-tt-chip").style.display = ttVis ? "inline-flex" : "none";
+  if ($("pv-kk-chip")) $("pv-kk-chip").style.display = kkVis ? "inline-flex" : "none";
+  if ($("pv-tw-chip")) $("pv-tw-chip").style.display = twVis ? "inline-flex" : "none";
+
+  if ($("pv-tt")) $("pv-tt").textContent = (v.tiktok || 0).toLocaleString("es");
+  if ($("pv-kk")) $("pv-kk").textContent = (v.kick || 0).toLocaleString("es");
+  if ($("pv-tw")) $("pv-tw").textContent = (v.twitch || 0).toLocaleString("es");
+}
+
+// Actualizar contadores de viewers si están en pantalla
+async function refrescarViewers() {
+  if ($("pv-box").style.display === "none") return;
+  try {
+    const v = await (await fetch("/api/viewers", { cache: "no-store" })).json();
+    actualizarViewersPromo(v);
+  } catch(e) {}
+}
+
+const es = new Flujo("promo");
+es.addEventListener("promo", e => {
+  try {
+    const d = JSON.parse(e.data);
+    if (cfg.activa || d.f) mostrar(d, d.s);
+  } catch(err) {}
+});
+
+es.addEventListener("promo_cfg", cargar);
+es.addEventListener("viewers", e => {
+  try {
+    const v = JSON.parse(e.data);
+    actualizarViewersPromo(v);
+  } catch(err) {}
+});
+
+es.onopen = cargar;
+cargar();
+setInterval(refrescarViewers, 4000);
+
+es.addEventListener("boot", e => {
+  const b = JSON.parse(e.data).id;
+  if (boot && boot !== b) location.reload();
+  boot = b;
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "activa": true,
+  "badge": "🔴 EN BREVE",
+  "titulo": "EL STREAM COMIENZA EN",
+  "subtitulo": "PREPÁRATE · EN DIRECTO",
+  "fecha_objetivo": "2026-12-31T20:00",
+  "mensaje_final": "🔥 ¡ESTAMOS EN VIVO! 🔥",
+  "estilo": "festival",
+  "color_primario": "#ffb703",
+  "color_secundario": "#fb8500",
+  "mostrar_dias": false,
+  "mostrar_horas": true,
+  "mostrar_segundos": true,
+  "mostrar_aura": true,
+  "tamano": 100
+}

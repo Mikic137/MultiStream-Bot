@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <script src="/static/flujo.js"></script>
+  <title>Retos Streamloots (OBS)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@700;800&display=swap');
+
+    @font-face {
+      font-family: 'Minecraft Medium';
+      src: local('Minecraft Medium'), local('Minecraft-Medium'), local('Minecraft'), local('Minecraft Regular');
+    }
+    @font-face {
+      font-family: 'Minecraft';
+      src: local('Minecraft'), local('Minecraft Medium'), local('Minecraft-Medium');
+    }
+
+    html, body {
+      margin: 0;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--f), 'Rajdhani', 'Segoe UI', Arial, sans-serif;
+      color: var(--cx, #fff);
+    }
+    #b {
+      position: fixed;
+      max-width: 520px;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px 18px;
+      border-radius: 12px;
+      background: var(--bg, transparent);
+      opacity: 0;
+      transition: opacity .4s ease, transform .3s ease;
+      font-size: var(--tam, 24px);
+      line-height: 1.25;
+      text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+    }
+    #b.on { opacity: 1; }
+    #b.arriba-izq { top: 14px; left: 14px; }
+    #b.arriba-der { top: 14px; right: 14px; }
+    #b.abajo-izq { bottom: 14px; left: 14px; }
+    #b.abajo-der { bottom: 14px; right: 14px; }
+
+    #t {
+      color: var(--ct, #ffd45e);
+      font-weight: 800;
+      letter-spacing: .08em;
+      margin-bottom: 8px;
+      font-size: 1.1em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .i {
+      margin: 6px 0;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: rgba(13, 22, 41, 0.7);
+      border-left: 4px solid #64748b;
+      word-break: break-word;
+      transition: all 0.25s ease;
+    }
+
+    /* RETOS EN CURSO (PUEDEN SER VARIOS A LA VEZ) */
+    .i.cu {
+      background: rgba(22, 36, 68, 0.92);
+      border-left: 5px solid var(--ca, #ffd45e);
+      box-shadow: 0 0 14px rgba(255, 212, 94, 0.25);
+      animation: pulseCurso 2.5s infinite alternate;
+    }
+    @keyframes pulseCurso {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.15) drop-shadow(0 0 8px rgba(255, 212, 94, 0.4)); }
+    }
+
+    /* DISTINCIÓN POR CATEGORÍA / RAREZA */
+    .i.rar-legendaria {
+      border-left-color: #fbbf24;
+      background: linear-gradient(90deg, rgba(120, 53, 15, 0.6) 0%, rgba(20, 30, 55, 0.8) 100%);
+    }
+    .i.rar-epica {
+      border-left-color: #c084fc;
+      background: linear-gradient(90deg, rgba(76, 29, 149, 0.6) 0%, rgba(20, 30, 55, 0.8) 100%);
+    }
+    .i.rar-rara {
+      border-left-color: #38bdf8;
+      background: linear-gradient(90deg, rgba(12, 74, 110, 0.6) 0%, rgba(20, 30, 55, 0.8) 100%);
+    }
+    .i.rar-comun {
+      border-left-color: #34d399;
+    }
+
+    .badge-r {
+      font-size: 0.58em;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-right: 6px;
+      vertical-align: middle;
+      display: inline-block;
+      text-shadow: none;
+    }
+    .badge-r.legendaria { background: #f59e0b; color: #000; box-shadow: 0 0 6px #f59e0b; }
+    .badge-r.epica { background: #a855f7; color: #fff; }
+    .badge-r.rara { background: #0284c7; color: #fff; }
+    .badge-r.comun { background: #334155; color: #cbd5e1; }
+
+    .badge-act {
+      background: #ffd45e;
+      color: #0b0f19;
+      font-size: 0.55em;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      margin-right: 6px;
+      vertical-align: middle;
+      display: inline-block;
+      text-shadow: none;
+      animation: blinkAct 1s infinite alternate;
+    }
+    @keyframes blinkAct {
+      0% { opacity: 0.85; }
+      100% { opacity: 1; transform: scale(1.05); }
+    }
+
+    .tit-carta {
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    .rar-legendaria .tit-carta { color: #fef08a; }
+    .rar-epica .tit-carta { color: #f5d0fe; }
+    .rar-rara .tit-carta { color: #bae6fd; }
+
+    .i small {
+      display: block;
+      font-size: .65em;
+      opacity: .85;
+      margin-top: 2px;
+      color: #cbd5e1;
+    }
+    .m {
+      opacity: .8;
+      font-size: .75em;
+      text-align: center;
+      margin-top: 6px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+<div id="b" class="abajo-izq">
+  <div id="t"></div>
+  <div id="l"></div>
+</div>
+
+<script>
+const $ = i => document.getElementById(i), b = $("b");
+let boot = null;
+
+const ICONS_RAREZA = {
+  legendaria: "⭐ LEGENDARIA",
+  epica: "💜 ÉPICA",
+  rara: "🔷 RARA",
+  comun: "COMÚN"
+};
+
+async function cargar() {
+  let d;
+  try {
+    d = await (await fetch("/api/loots", { cache: "no-store" })).json();
+  } catch {
+    return;
+  }
+  const c = d.cfg, s = document.documentElement.style;
+  const f = (c.fuente || "").trim();
+  s.setProperty("--f", f ? (f.includes(" ") ? `"${f}"` : f) : "'Rajdhani'");
+  s.setProperty("--ct", c.color_titulo);
+  s.setProperty("--cx", c.color_texto);
+  s.setProperty("--ca", c.color_actual);
+  s.setProperty("--tam", c.tam + "px");
+  s.setProperty("--bg", c.fondo ? "rgba(7, 12, 23, 0.88)" : "transparent");
+
+  // Ordenar: primero TODOS los que están en curso, luego por id
+  const vivos = d.items.filter(x => x.estado !== "hecho").sort((x, y) => (y.estado === "curso") - (x.estado === "curso") || x.id - y.id);
+  const enCursoCount = vivos.filter(x => x.estado === "curso").length;
+
+  b.className = c.pos + (vivos.length || !c.ocultar_vacio ? " on" : "");
+  $("t").textContent = enCursoCount > 0 ? `RETOS EN CURSO (${enCursoCount}/${vivos.length})` : `RETOS PENDIENTES (${vivos.length})`;
+
+  const l = $("l");
+  l.replaceChildren();
+
+  vivos.slice(0, c.max_visible).forEach(x => {
+    const e = document.createElement("div");
+    const rareza = x.rareza || "comun";
+    e.className = "i rar-" + rareza + (x.estado === "curso" ? " cu" : "");
+
+    // 1. Badge "EN CURSO" si está activo
+    if (x.estado === "curso") {
+      const act = document.createElement("span");
+      act.className = "badge-act";
+      act.textContent = "▶ EN CURSO";
+      e.append(act);
+    }
+
+    // 2. Badge de Rareza / Categoría
+    if (c.mostrar_rareza !== false) {
+      const rz = document.createElement("span");
+      rz.className = "badge-r " + rareza;
+      rz.textContent = ICONS_RAREZA[rareza] || "COMÚN";
+      e.append(rz);
+    }
+
+    // 3. Título de la carta / reto
+    const n = document.createElement("span");
+    n.className = "tit-carta";
+    n.textContent = x.carta;
+    e.append(n);
+
+    // 4. Usuario y mensaje opcional
+    if (x.usuario || (c.mostrar_mensaje && x.mensaje)) {
+      const s = document.createElement("small");
+      s.textContent = (x.usuario ? "de " + x.usuario : "") + (c.mostrar_mensaje && x.mensaje ? " — «" + x.mensaje + "»" : "");
+      e.append(s);
+    }
+
+    l.append(e);
+  });
+
+  if (vivos.length > c.max_visible) {
+    const m = document.createElement("div");
+    m.className = "m";
+    m.textContent = `+${vivos.length - c.max_visible} retos más en cola`;
+    l.append(m);
+  }
+}
+
+const es = new Flujo("loots");
+es.addEventListener("loots", cargar);
+es.onopen = cargar;
+es.addEventListener("boot", e => {
+  const x = JSON.parse(e.data).id;
+  if (boot && boot !== x) location.reload();
+  boot = x;
+});
+</script>
+</body>
+</html>
